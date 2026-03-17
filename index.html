@@ -1,222 +1,131 @@
-<!DOCTYPE html><html lang="pt">
+<!DOCTYPE html>
+<html lang="pt">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Unidade Técnica de Gestão do Saneamento de Luanda - Ultra Demo</title>
+<title>UTGSL — Unidade Técnica de Gestão do Saneamento de Luanda</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
+  body { font-family: 'Inter', sans-serif; }
   #map { height: 450px; border-radius: 1rem; }
-  .sidebar { width: 300px; height: 100vh; overflow-y: auto; background: #111827; }
-  .sidebar button:hover { background: #1f2937; transition: 0.3s; }
-  .activeModule { background-color: #2563eb !important; color: #fff; }
-  #chatbot { position: fixed; bottom: 20px; right: 20px; width: 300px; max-height: 400px; background: rgba(16,185,129,0.95); border-radius: 1rem; display: flex; flex-direction: column; overflow: hidden; }
-  #chatbot-header { background: #065f46; padding: 0.5rem; font-weight: bold; color: white; }
-  #chatbot-messages { flex: 1; padding: 0.5rem; overflow-y: auto; font-size: 0.9rem; color: white; }
-  #chatbot-input { display: flex; border-top: 1px solid #065f46; }
-  #chatbot-input input { flex: 1; padding: 0.5rem; border: none; outline: none; }
-  #chatbot-input button { padding: 0.5rem; background: #065f46; color: white; cursor: pointer; }
-  .fade-in { animation: fadeIn 0.8s ease-in; }
-  @keyframes fadeIn { from {opacity:0; transform: translateY(10px);} to {opacity:1; transform: translateY(0);} }
-  .team-card:hover { transform: translateY(-5px); transition: 0.3s; }
-  .topbar { background: #111827; }
-  .topbar a { color: white; margin-left: 1rem; text-decoration: none; }
-  .topbar a:hover { color: #10B981; }
+  .sidebar { width: 280px; background: #0b0f19; }
+  .activeModule { background: linear-gradient(90deg,#10B981,#059669); color:#fff; }
+  .glass { background: rgba(255,255,255,0.04); backdrop-filter: blur(8px); }
+  .team-card:hover { transform: translateY(-6px); box-shadow:0 10px 20px rgba(0,0,0,0.4); transition:0.3s; }
+  #chatbot { position: fixed; bottom:20px; right:20px; width:300px; max-height:400px; background: rgba(16,185,129,0.95); border-radius:1rem; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 8px 24px rgba(0,0,0,0.4);}
+  #chatbot-header { background:#065f46; padding:0.5rem; font-weight:bold; color:white; }
+  #chatbot-messages { flex:1; padding:0.5rem; overflow-y:auto; font-size:0.9rem; color:white; }
+  #chatbot-input { display:flex; border-top:1px solid #065f46; }
+  #chatbot-input input { flex:1; padding:0.5rem; border:none; outline:none; }
+  #chatbot-input button { padding:0.5rem; background:#065f46; color:white; cursor:pointer; }
+  .fade-in { animation:fadeIn 0.8s ease-in; }
+  @keyframes fadeIn { from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);} }
 </style>
 </head>
-<body class="bg-gray-950 text-white font-sans"><!-- TOPBAR --><nav class="topbar flex justify-between items-center p-4">
-  <h1 class="font-bold text-xl text-green-400">UTGSL</h1>
-  <div class="hidden md:flex">
-    <a href="#about">Sobre Nós</a>
-    <a href="#team">Nossa Equipa</a>
-    <a href="#mission">Missão</a>
-    <a href="#vision">Visão</a>
-    <a href="#values">Valores</a>
-    <a href="#blog">Blog</a>
-    <a href="#complaints">Reclamações</a>
-    <a href="#contact">Contacto</a>
-    <a href="#login" class="ml-2 bg-green-600 p-1 rounded">Login</a>
+<body class="bg-[#0b0f19] text-white">
+
+<!-- LOGIN -->
+<div id="login" class="flex items-center justify-center h-screen">
+  <div class="glass p-8 rounded-2xl w-80 border border-[#10B981]/30">
+    <h2 class="text-2xl font-bold mb-4 text-[#10B981]">UTGSL</h2>
+    <input placeholder="Usuário" class="w-full mb-2 p-2 rounded bg-gray-900 text-white" />
+    <input type="password" placeholder="Senha" class="w-full mb-4 p-2 rounded bg-gray-900 text-white" />
+    <button onclick="enterSystem()" class="w-full bg-[#10B981] p-2 rounded hover:bg-[#059669] transition">Entrar</button>
   </div>
-  <button class="md:hidden" onclick="toggleMobileMenu()">☰</button>
-</nav>
-<div id="mobileMenu" class="hidden flex flex-col bg-gray-900 p-2 md:hidden">
-  <a href="#about">Sobre Nós</a>
-  <a href="#team">Nossa Equipa</a>
-  <a href="#mission">Missão</a>
-  <a href="#vision">Visão</a>
-  <a href="#values">Valores</a>
-  <a href="#blog">Blog</a>
-  <a href="#complaints">Reclamações</a>
-  <a href="#contact">Contacto</a>
-  <a href="#login" class="mt-2 bg-green-600 p-1 rounded">Login</a>
-</div><!-- LOGIN --><div id="login" class="flex items-center justify-center h-screen">
-  <div class="bg-gray-900 p-8 rounded-2xl w-80">
-    <h2 class="text-2xl font-bold mb-4 text-green-400">Unidade Técnica de Gestão do Saneamento de Luanda</h2>
-    <input placeholder="Usuário" class="w-full mb-2 p-2 rounded bg-gray-800 text-white" />
-    <input type="password" placeholder="Senha" class="w-full mb-4 p-2 rounded bg-gray-800 text-white" />
-    <button onclick="enterSystem()" class="w-full bg-green-600 p-2 rounded hover:bg-green-500 transition">Entrar</button>
-  </div>
-</div><!-- APP --><div id="app" class="hidden flex flex-col md:flex-row">
-  <!-- SIDEBAR INTERNA -->
+</div>
+
+<!-- APP -->
+<div id="app" class="hidden flex flex-col md:flex-row">
   <aside class="sidebar p-4 flex flex-col gap-4">
     <h2 class="font-bold mb-3 text-lg border-b border-gray-700 pb-2">Módulos</h2>
     <button onclick="scrollToId('mapPanel');setActive(this)" class="text-left p-2 rounded flex items-center gap-2">🗺️ Mapa</button>
     <button onclick="scrollToId('dashPanel');setActive(this)" class="text-left p-2 rounded flex items-center gap-2">📊 Indicadores</button>
-    <button onclick="scrollToId('clientsPanel');setActive(this)" class="text-left p-2 rounded flex items-center gap-2">👥 Clientes</button>
-    <button onclick="scrollToId('feedPanel');setActive(this)" class="text-left p-2 rounded flex items-center gap-2">📡 Ocorrências</button>
-    <div class="mt-auto text-center text-gray-500 text-xs py-2 border-t border-gray-700">Powered by <strong>Magestade Pura Digital</strong></div>
-  </aside>  <!-- CONTEÚDO PRINCIPAL -->  <div class="flex-1 p-4 overflow-auto"><!-- SOBRE NÓS -->
-<section id="about" class="bg-gray-800 p-6 rounded-2xl mb-6" style="background-image:url('https://images.unsplash.com/photo-1593508512255-86ab42a8e620?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80'); background-size:cover; background-position:center;">
-  <h2 class="text-2xl font-bold mb-2">Sobre Nós</h2>
-  <p class="bg-gray-900 bg-opacity-70 p-3 rounded">A UTGSL é responsável pelo planejamento e execução dos serviços de saneamento em Luanda, garantindo água potável e gestão de resíduos de forma eficiente e sustentável.</p>
-</section>
+    <button onclick="scrollToId('team');setActive(this)" class="text-left p-2 rounded flex items-center gap-2">👥 Equipa</button>
+  </aside>
 
-<!-- NOSSA EQUIPA -->
-<section id="team" class="mb-6">
-  <h2 class="text-2xl font-bold mb-4">Nossa Equipa</h2>
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-    <div class="team-card bg-gray-800 p-4 rounded-2xl text-center">
-      <img src="https://images.unsplash.com/photo-1607746882042-944635dfe10e?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" alt="Carlos M. N'Gola" class="rounded-full mx-auto mb-2 w-24 h-24 object-cover">
-      <h3 class="font-bold">Eng. Carlos M. N'Gola</h3>
-      <p class="text-sm text-gray-400 mb-1">Diretor Geral</p>
-      <p class="text-xs italic">"Trabalhamos todos os dias para um saneamento urbano eficiente e sustentável em Luanda."</p>
-      <a href="https://www.linkedin.com/in/carlos-ngola" target="_blank" class="text-blue-400 text-xs hover:underline">LinkedIn</a>
+  <div class="flex-1 p-4 overflow-auto">
+    <!-- Mensagem do Diretor -->
+    <section class="glass p-6 rounded-2xl mb-6 border border-[#10B981]/20">
+      <h2 class="text-xl font-bold mb-2">Mensagem do Director Geral</h2>
+      <p class="italic">"A UTGSL está comprometida com a inovação e sustentabilidade para transformar o saneamento urbano em Luanda. Cada cidadão merece acesso seguro à água e gestão digna de resíduos. Contamos com a sua colaboração."</p>
+      <p class="mt-2 font-bold">Alberto Marcos</p>
+    </section>
+
+    <!-- Equipa estilo LinkedIn -->
+    <section id="team" class="mb-6">
+      <h2 class="text-2xl font-bold mb-4">Nossa Equipa</h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="team-card glass p-4 rounded-2xl text-center">
+          <img src="https://randomuser.me/api/portraits/men/32.jpg" class="rounded-full mx-auto mb-2 w-24 h-24">
+          <h3 class="font-bold">Alberto Marcos</h3>
+          <p class="text-sm text-gray-400">Director Geral</p>
+          <p class="text-xs mt-1">Engenheiro civil com 15 anos de experiência em gestão de infraestruturas urbanas.</p>
+        </div>
+        <div class="team-card glass p-4 rounded-2xl text-center">
+          <img src="https://randomuser.me/api/portraits/women/44.jpg" class="rounded-full mx-auto mb-2 w-24 h-24">
+          <h3 class="font-bold">Jenny Baptista</h3>
+          <p class="text-sm text-gray-400">Directora Administrativa</p>
+          <p class="text-xs mt-1">Especialista em finanças públicas e políticas ambientais.</p>
+        </div>
+        <div class="team-card glass p-4 rounded-2xl text-center">
+          <img src="https://randomuser.me/api/portraits/men/45.jpg" class="rounded-full mx-auto mb-2 w-24 h-24">
+          <h3 class="font-bold">Kapenda João</h3>
+          <p class="text-sm text-gray-400">Chefe de Operações</p>
+          <p class="text-xs mt-1">Lidera equipas de campo em projectos de alto impacto social.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Mapa -->
+    <div id="mapPanel" class="glass p-4 rounded-2xl fade-in mb-6">
+      <h3>Mapa Operacional</h3>
+      <div id="map"></div>
     </div>
-    <div class="team-card bg-gray-800 p-4 rounded-2xl text-center">
-      <img src="https://images.unsplash.com/photo-1599566150163-29194dcaad36?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" alt="Ana L. Fernandes" class="rounded-full mx-auto mb-2 w-24 h-24 object-cover">
-      <h3 class="font-bold">Dra. Ana L. Fernandes</h3>
-      <p class="text-sm text-gray-400 mb-1">Diretor Administrativo</p>
-      <a href="#" class="text-blue-400 text-xs hover:underline">LinkedIn</a>
+
+    <!-- Dashboard -->
+    <div id="dashPanel" class="glass p-4 rounded-2xl fade-in mb-6">
+      <h3>Indicadores Semanais</h3>
+      <canvas id="chart"></canvas>
     </div>
-    <div class="team-card bg-gray-800 p-4 rounded-2xl text-center">
-      <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" alt="João F. Matias" class="rounded-full mx-auto mb-2 w-24 h-24 object-cover">
-      <h3 class="font-bold">Eng. João F. Matias</h3>
-      <p class="text-sm text-gray-400 mb-1">Chefe de Operações</p>
-      <a href="#" class="text-blue-400 text-xs hover:underline">LinkedIn</a>
-    </div>
-  </div>
-</section>
 
-<!-- MISSÃO / VISÃO / VALORES -->
-<section class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-  <div id="mission" class="bg-gray-800 p-4 rounded-2xl fade-in">
-    <h3 class="text-xl font-bold mb-2">Missão</h3>
-    <p>Garantir saneamento urbano eficiente e sustentável em toda Luanda, promovendo saúde e qualidade de vida.</p>
   </div>
-  <div id="vision" class="bg-gray-800 p-4 rounded-2xl fade-in">
-    <h3 class="text-xl font-bold mb-2">Visão</h3>
-    <p>Ser referência nacional em gestão de saneamento urbano, inovação e sustentabilidade ambiental.</p>
-  </div>
-  <div id="values" class="bg-gray-800 p-4 rounded-2xl fade-in">
-    <h3 class="text-xl font-bold mb-2">Valores</h3>
-    <ul class="list-disc list-inside">
-      <li>Transparência</li>
-      <li>Responsabilidade</li>
-      <li>Inovação</li>
-      <li>Sustentabilidade</li>
-    </ul>
-  </div>
-</section>
-
-<!-- BLOG -->
-<section id="blog" class="bg-gray-800 p-4 rounded-2xl mb-6">
-  <h2 class="text-2xl font-bold mb-4">Blog / Notícias</h2>
-  <p class="text-gray-300">Aqui serão publicadas notícias e atualizações sobre saneamento em Luanda.</p>
-</section>
-
-<!-- ÁREA DE RECLAMAÇÕES -->
-<section id="complaints" class="bg-gray-800 p-4 rounded-2xl mb-6">
-  <h2 class="text-2xl font-bold mb-4">Reclamações</h2>
-  <form id="complaintForm" class="flex flex-col gap-2">
-    <input type="text" placeholder="Nome" class="p-2 rounded bg-gray-900" required>
-    <input type="text" placeholder="Bairro" class="p-2 rounded bg-gray-900" required>
-    <input type="text" placeholder="Rua" class="p-2 rounded bg-gray-900" required>
-    <select class="p-2 rounded bg-gray-900" required>
-      <option>Tipo de Ocorrência</option>
-      <option>Lixo</option>
-      <option>Entupimento</option>
-      <option>Água</option>
-    </select>
-    <textarea placeholder="Mensagem" class="p-2 rounded bg-gray-900" required></textarea>
-    <button type="submit" class="bg-green-600 p-2 rounded hover:bg-green-500 transition">Enviar</button>
-  </form>
-  <p id="complaintMsg" class="mt-2 text-green-400 hidden">Reclamação enviada com sucesso!</p>
-</section>
-
-<!-- MAPA -->
-<div id="mapPanel" class="bg-gray-800 p-4 rounded-2xl fade-in mb-6">
-  <h3>Mapa Operacional</h3>
-  <div id="map"></div>
 </div>
 
-<!-- DASHBOARD -->
-<div id="dashPanel" class="bg-gray-800 p-4 rounded-2xl fade-in mb-6">
-  <h3>Indicadores Semanais</h3>
-  <canvas id="chart"></canvas>
-</div>
-
-<!-- CLIENTES -->
-<div id="clientsPanel" class="bg-gray-800 p-4 rounded-2xl fade-in mb-6">
-  <h3>Base de Clientes</h3>
-  <p>Clientes singulares e empresas, histórico financeiro e status. Clique para ver detalhes.</p>
-</div>
-
-  </div>
-</div><!-- CHATBOT --><div id="chatbot">
+<!-- Chatbot -->
+<div id="chatbot">
   <div id="chatbot-header">Chatbot UTGSL</div>
   <div id="chatbot-messages"></div>
   <div id="chatbot-input">
     <input type="text" placeholder="Digite sua pergunta...">
     <button onclick="sendChat()">Enviar</button>
   </div>
-</div><script>
-function toggleMobileMenu(){ document.getElementById('mobileMenu').classList.toggle('hidden'); }
+</div>
+
+<script>
 function enterSystem(){ document.getElementById('login').classList.add('hidden'); document.getElementById('app').classList.remove('hidden'); init(); }
 function scrollToId(id){ document.getElementById(id).scrollIntoView({behavior:'smooth'}); }
-function setActive(button){ document.querySelectorAll('.sidebar button').forEach(b=>b.classList.remove('activeModule')); button.classList.add('activeModule'); }
-
+function setActive(btn){ document.querySelectorAll('.sidebar button').forEach(b=>b.classList.remove('activeModule')); btn.classList.add('activeModule'); }
 function init(){
   const map=L.map('map').setView([-8.839,13.289],12);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
   L.marker([-8.84,13.23]).addTo(map).bindPopup('Maianga - Entupimento');
   L.marker([-8.90,13.18]).addTo(map).bindPopup('Talatona - Lixo acumulado');
-
   new Chart(document.getElementById('chart'), {
     type:'line',
-    data:{
-      labels:['Seg','Ter','Qua','Qui','Sex'],
-      datasets:[{label:'Incidentes', data:[10,20,15,30,18], borderColor:'#10B981', backgroundColor:'rgba(16,185,129,0.2)', tension:0.3}]
-    }
+    data:{ labels:['Seg','Ter','Qua','Qui','Sex'], datasets:[{label:'Ocorrências', data:[12,19,14,26,20], borderColor:'#10B981', tension:0.4}] }
   });
 }
-
-// Chatbot Simulado
 function sendChat(){
   const input=document.querySelector('#chatbot-input input');
-  const msg=input.value.trim();
-  if(!msg) return;
+  const msg=input.value.trim(); if(!msg) return;
   const chat=document.getElementById('chatbot-messages');
-  const userMsg=document.createElement('div'); userMsg.textContent='Você: '+msg; userMsg.style.margin='5px 0'; chat.appendChild(userMsg);
+  chat.innerHTML+=`<div>Você: ${msg}</div>`;
   input.value='';
-
-  // Resposta simulada
-  setTimeout(()=>{
-    const botMsg=document.createElement('div');
-    botMsg.textContent='UTGSL: Obrigado pelo contato. Em breve responderemos à sua pergunta sobre "'+msg+'".';
-    botMsg.style.margin='5px 0'; chat.appendChild(botMsg);
-    chat.scrollTop=chat.scrollHeight;
-  },800);
+  setTimeout(()=>{ chat.innerHTML+=`<div>UTGSL: Obrigado pelo contato, ${msg} foi registrada.</div>`; chat.scrollTop=chat.scrollHeight; },600);
 }
-
-// Formulário de reclamações
-const complaintForm=document.getElementById('complaintForm');
-complaintForm.addEventListener('submit', function(e){
-  e.preventDefault();
-  this.reset();
-  document.getElementById('complaintMsg').classList.remove('hidden');
-  setTimeout(()=>document.getElementById('complaintMsg').classList.add('hidden'),3000);
-});
-</script></body>
-    </html>
+</script>
+</body>
+</html>
