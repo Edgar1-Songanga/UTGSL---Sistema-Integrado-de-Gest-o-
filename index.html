@@ -3,92 +3,257 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>UTGSL - Sistema Inteligente de Saneamento</title>
+
+<title>UTGSL Smart City V7</title>
+
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+
 <style>
-body{background:linear-gradient(135deg,#020617,#0f172a);color:white;font-family:sans-serif}
-.glass{background:rgba(255,255,255,0.05);backdrop-filter:blur(12px);border-radius:16px;padding:16px}
-.sidebar{width:260px}
-#map{height:300px;border-radius:12px}
-.btn{background:#16a34a;padding:8px 12px;border-radius:8px;font-size:14px}
+body { background:#0b0f19; color:white; font-family:system-ui; }
+.glass { background:rgba(255,255,255,0.05); backdrop-filter:blur(12px); border-radius:14px; padding:16px; }
+.sidebar { width:260px; background:#0f172a; }
+.hidden { display:none; }
 </style>
 </head>
-<body class="flex">
-<div class="sidebar p-4 space-y-3 glass">
-  <h1 class="text-xl font-bold">UTGSL</h1>
-  <button onclick="nav('dashboard')" class="btn w-full text-left">Dashboard</button>
-  <button onclick="nav('clients')" class="btn w-full text-left">Clientes</button>
-  <button onclick="nav('complaints')" class="btn w-full text-left">Reclamações</button>
-  <button onclick="nav('mapa')" class="btn w-full text-left">Mapa</button>
-  <button onclick="nav('team')" class="btn w-full text-left">Equipa</button>
-  <div class="text-xs mt-10 opacity-60">Powered by Magestade Pura Digital</div>
+
+<body class="flex h-screen">
+
+<!-- LOGIN -->
+<div id="loginScreen" class="flex items-center justify-center w-full">
+<div class="glass w-96 text-center">
+<h2 class="text-xl mb-4">Sistema UTGSL</h2>
+<input id="user" placeholder="Nome" class="w-full p-2 mb-2">
+<select id="role" class="w-full p-2 mb-2">
+<option value="admin">Admin</option>
+<option value="operador">Operador</option>
+</select>
+<button onclick="Auth.login()" class="bg-green-500 w-full p-2">Entrar</button>
 </div>
-<div class="flex-1 p-6 space-y-6">
-  <div class="flex justify-between items-center">
-    <h2 class="text-2xl font-bold">Sistema Inteligente de Saneamento</h2>
-    <div class="opacity-60">Luanda</div>
-  </div>
-  <div id="dashboard" class="view glass">
-    <h3 class="mb-3">Indicadores</h3>
-    <canvas id="chart"></canvas>
-  </div>
-  <div id="clients" class="view hidden glass">
-    <div class="flex justify-between mb-3">
-      <h3>Clientes</h3>
-      <button onclick="addClient()" class="btn">+ Novo</button>
-    </div>
-    <table class="w-full text-sm">
-      <thead><tr><th>Nome</th><th>Bairro</th><th>Estado</th><th></th></tr></thead>
-      <tbody id="clientsTable"></tbody>
-    </table>
-    <div id="profile" class="mt-5 hidden"></div>
-  </div>
-  <div id="complaints" class="view hidden glass">
-    <h3>Reclamações</h3>
-    <input id="nome" placeholder="Nome" class="p-2 text-black w-full mb-2">
-    <input id="bairro" placeholder="Bairro" class="p-2 text-black w-full mb-2">
-    <textarea id="msg" placeholder="Mensagem" class="p-2 text-black w-full mb-2"></textarea>
-    <button onclick="addComplaint()" class="btn w-full">Enviar</button>
-    <div id="formFeedback" class="mt-2 text-sm"></div>
-    <div id="complaintList" class="mt-4"></div>
-  </div>
-  <div id="mapa" class="view hidden glass">
-    <h3>Mapa Operacional</h3>
-    <div id="map"></div>
-  </div>
-  <div id="team" class="view hidden glass">
-    <h3>Nossa Equipa</h3>
-    <div class="grid md:grid-cols-3 gap-4">
-      <div class="glass"><h4>Kapenda</h4><p>Director Geral</p><p class="text-sm opacity-60">"Transformar Luanda digitalmente."</p></div>
-      <div class="glass"><h4>Alberto Marcos</h4><p>Operações</p></div>
-      <div class="glass"><h4>Jenny Baptista</h4><p>Administração</p></div>
-    </div>
-  </div>
 </div>
-<div class="fixed bottom-4 right-4 w-72 glass">
-  <div id="chatBox" class="h-40 overflow-y-auto text-sm"></div>
-  <input id="chatInput" class="w-full p-2 text-black mt-2">
-  <button onclick="chat()" class="btn w-full mt-2">Enviar</button>
+
+<!-- APP -->
+<div id="app" class="hidden flex w-full">
+
+<!-- SIDEBAR -->
+<div class="sidebar p-4 space-y-2">
+<h2 class="text-xl font-bold">UTGSL</h2>
+
+<button onclick="Router.go('dashboard')">Dashboard</button>
+<button onclick="Router.go('map')">Mapa</button>
+<button onclick="Router.go('clients')">Clientes</button>
+<button onclick="Router.go('complaints')">Reclamações</button>
+
+<hr>
+<div id="userInfo"></div>
+<button onclick="Auth.logout()" class="text-red-400">Sair</button>
 </div>
+
+<!-- MAIN -->
+<div class="flex-1 flex flex-col">
+
+<div class="p-4 bg-black flex justify-between">
+<h1>Unidade Técnica de Gestão do Saneamento de Luanda</h1>
+<div>Smart City Platform</div>
+</div>
+
+<div class="p-6 overflow-y-auto flex-1">
+
+<!-- DASHBOARD -->
+<div id="dashboard"></div>
+
+<!-- MAP -->
+<div id="mapView" class="hidden">
+<div id="map" style="height:500px;"></div>
+</div>
+
+<!-- CLIENTES -->
+<div id="clients" class="hidden"></div>
+
+<!-- RECLAMAÇÕES -->
+<div id="complaints" class="hidden"></div>
+
+</div>
+</div>
+</div>
+
+<!-- CHAT -->
+<div class="fixed bottom-4 right-4 w-80 glass">
+<div id="chatBox" class="h-40 overflow-y-auto"></div>
+<input id="chatInput" class="w-full p-2">
+<button onclick="Chat.send()" class="bg-green-500 w-full p-2">Enviar</button>
+</div>
+
 <script>
-const safe = s => String(s||'').replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
-const BAIRROS = {"Ingombota":[-8.814,13.234],"Maculusso":[-8.824,13.24],"Maianga":[-8.835,13.242]};
-const DB = JSON.parse(localStorage.getItem("db")||'{"clients":[],"complaints":[]}');
-function save(){localStorage.setItem("db", JSON.stringify(DB));}
-function nav(id){document.querySelectorAll(".view").forEach(v=>v.classList.add("hidden"));document.getElementById(id).classList.remove("hidden");}
-function renderClients(){const el=document.getElementById("clientsTable");el.innerHTML = DB.clients.map(c=>`<tr><td>${safe(c.nome)}</td><td>${safe(c.bairro)}</td><td>${safe(c.estado)}</td><td><button onclick="profile('${c.id}')">Ver</button></td></tr>`).join("") || <tr><td colspan="4" class="opacity-60">Sem clientes</td></tr>;}
-function profile(id){const c=DB.clients.find(x=>x.id==id);document.getElementById("profile").classList.remove("hidden");document.getElementById("profile").innerHTML=`<div class="glass"><h3>${safe(c.nome)}</h3><p>${safe(c.telefone)}</p><p>${safe(c.rua)}, ${safe(c.bairro)}</p><p>${safe(c.estado)}</p></div>`;}
-function addClient(){const nome=prompt("Nome:");if(!nome)return;DB.clients.push({id:crypto.randomUUID(),nome,bairro:"Ingombota",rua:"Rua Nova",telefone:"+244900000000",estado:"Regular"});save();renderClients();}
-function renderComplaints(){const el=document.getElementById("complaintList");el.innerHTML = DB.complaints.map(c=>`<div class="glass mt-2"><b>${safe(c.nome)}</b> (${safe(c.bairro)})<p>${safe(c.msg)}</p></div>`).join("");}
-function addComplaint(){const nome=document.getElementById("nome").value.trim(),bairro=document.getElementById("bairro").value.trim(),msg=document.getElementById("msg").value.trim(),fb=document.getElementById("formFeedback");if(!nome||!msg){fb.textContent="Preencha nome e mensagem.";return;}fb.textContent="";DB.complaints.push({nome,bairro,msg});save();renderComplaints();addMapPoint(bairro,msg);document.getElementById("nome").value="";document.getElementById("bairro").value="";document.getElementById("msg").value="";}
-let map;function initMap(){map=L.map('map').setView([-8.83,13.23],12);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);}
-function addMapPoint(bairro,msg){if(!map)return;const coord=BAIRROS[bairro]||[-8.83+Math.random()/100,13.23+Math.random()/100];L.marker(coord).addTo(map).bindPopup(${safe(bairro)} - ${safe(msg)});}
-function chat(){const input=document.getElementById("chatInput"),chat=document.getElementById("chatBox");const txt=input.value.trim();if(!txt)return;chat.innerHTML+=`<div class="text-green-400 text-right">${safe(txt)}</div>`;let resp="Pedido registado.";if(txt.includes("lixo"))resp="Equipa será enviada.";if(txt.includes("pagamento"))resp="Consulte sua conta.";chat.innerHTML+=`<div>${safe(resp)}</div>`;chat.scrollTop=chat.scrollHeight;input.value="";}
-new Chart(document.getElementById("chart"),{type:'bar',data:{labels:["Seg","Ter","Qua","Qui","Sex"],datasets:[{label:"Ocorrências",data:[12,19,8,15,10]}]}});
-initMap();renderClients();renderComplaints();
+
+/* ================= STATE ================= */
+const Store = {
+state: {
+user:null,
+clients:[],
+complaints:[]
+},
+listeners:[],
+subscribe(fn){ this.listeners.push(fn); },
+setState(newState){
+this.state = {...this.state, ...newState};
+this.listeners.forEach(fn=>fn(this.state));
+localStorage.setItem("db", JSON.stringify(this.state));
+},
+init(){
+const data = JSON.parse(localStorage.getItem("db"));
+if(data) this.state = data;
+}
+};
+
+/* ================= AUTH ================= */
+const Auth = {
+login(){
+Store.setState({
+user:{name:user.value, role:role.value}
+});
+loginScreen.classList.add("hidden");
+app.classList.remove("hidden");
+userInfo.innerHTML = user.value + " ("+role.value+")";
+Router.go("dashboard");
+},
+logout(){ location.reload(); }
+};
+
+/* ================= ROUTER ================= */
+const Router = {
+go(view){
+document.querySelectorAll("#dashboard,#mapView,#clients,#complaints")
+.forEach(v=>v.classList.add("hidden"));
+
+document.getElementById(view==="map"?"mapView":view).classList.remove("hidden");
+
+Render[view]();
+}
+};
+
+/* ================= API ================= */
+const API = {
+delay(ms){ return new Promise(r=>setTimeout(r,ms)); },
+
+async addClient(data){
+await this.delay(400);
+
+Store.setState({
+clients:[...Store.state.clients, data]
+});
+},
+
+async addComplaint(data){
+await this.delay(400);
+
+Store.setState({
+complaints:[...Store.state.complaints, data]
+});
+}
+};
+
+/* ================= RENDER ================= */
+const Render = {
+
+dashboard(){
+dashboard.innerHTML = `
+<div class="grid grid-cols-3 gap-4">
+<div class="glass">Clientes: ${Store.state.clients.length}</div>
+<div class="glass">Reclamações: ${Store.state.complaints.length}</div>
+<div class="glass">Utilizador: ${Store.state.user.role}</div>
+</div>
+
+<canvas id="chart"></canvas>
+`;
+
+new Chart(document.getElementById("chart"),{
+type:"bar",
+data:{labels:["Jan","Fev","Mar"],
+datasets:[{data:[5,8,3]}]}
+});
+},
+
+clients(){
+clients.innerHTML = `
+<input id="cName" placeholder="Nome" class="p-2 w-full mb-2">
+<button onclick="Actions.addClient()" class="bg-green-500 w-full p-2">Adicionar</button>
+<div id="list"></div>
+`;
+
+let html="";
+Store.state.clients.forEach(c=>{
+html+=`<div class="glass mt-2">${c.name}</div>`;
+});
+document.getElementById("list").innerHTML=html;
+},
+
+complaints(){
+complaints.innerHTML = `
+<input id="rMsg" placeholder="Mensagem" class="p-2 w-full mb-2">
+<button onclick="Actions.addComplaint()" class="bg-green-500 w-full p-2">Enviar</button>
+<div id="listC"></div>
+`;
+
+let html="";
+Store.state.complaints.forEach(c=>{
+html+=`<div class="glass mt-2">${c.msg}</div>`;
+});
+document.getElementById("listC").innerHTML=html;
+}
+
+};
+
+/* ================= ACTIONS ================= */
+const Actions = {
+
+addClient(){
+API.addClient({
+id:crypto.randomUUID(),
+name:cName.value
+});
+},
+
+addComplaint(){
+API.addComplaint({
+id:crypto.randomUUID(),
+msg:rMsg.value
+});
+}
+};
+
+/* ================= MAP ================= */
+const map = L.map('map').setView([-8.83,13.23],12);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+/* ================= CHAT ================= */
+const Chat = {
+send(){
+let msg = chatInput.value;
+if(!msg) return;
+
+chatBox.innerHTML += `<div class="text-green-400">${msg}</div>`;
+
+let res = "A processar...";
+
+if(msg.includes("cliente")) res="Ver módulo clientes";
+if(msg.includes("lixo")) res="Equipa enviada";
+
+setTimeout(()=>{
+chatBox.innerHTML += `<div>${res}</div>`;
+chatBox.scrollTop = chatBox.scrollHeight;
+},500);
+
+chatInput.value="";
+}
+};
+
+/* ================= INIT ================= */
+Store.init();
+
 </script>
+
 </body>
 </html>
