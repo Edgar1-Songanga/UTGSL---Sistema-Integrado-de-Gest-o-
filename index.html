@@ -3,267 +3,92 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Unidade Técnica de Gestão do Saneamento de Luanda</title>
-
+<title>UTGSL - Sistema Inteligente de Saneamento</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
 <style>
-body {
-  background: linear-gradient(135deg,#020617,#0f172a);
-  color:white;
-  font-family:sans-serif;
-}
-.glass {
-  background: rgba(255,255,255,0.05);
-  backdrop-filter: blur(12px);
-  border-radius:16px;
-  padding:16px;
-}
-.sidebar {
-  width:260px;
-}
-#map { height:300px; border-radius:12px; }
+body{background:linear-gradient(135deg,#020617,#0f172a);color:white;font-family:sans-serif}
+.glass{background:rgba(255,255,255,0.05);backdrop-filter:blur(12px);border-radius:16px;padding:16px}
+.sidebar{width:260px}
+#map{height:300px;border-radius:12px}
+.btn{background:#16a34a;padding:8px 12px;border-radius:8px;font-size:14px}
 </style>
 </head>
-
 <body class="flex">
-
-<!-- SIDEBAR -->
 <div class="sidebar p-4 space-y-3 glass">
   <h1 class="text-xl font-bold">UTGSL</h1>
-
-  <button onclick="nav('dashboard')">Dashboard</button>
-  <button onclick="nav('clients')">Clientes</button>
-  <button onclick="nav('complaints')">Reclamações</button>
-  <button onclick="nav('mapa')">Mapa</button>
-  <button onclick="nav('team')">Equipa</button>
-
-  <div class="text-xs mt-10 opacity-60">
-    Powered by Magestade Pura Digital
-  </div>
+  <button onclick="nav('dashboard')" class="btn w-full text-left">Dashboard</button>
+  <button onclick="nav('clients')" class="btn w-full text-left">Clientes</button>
+  <button onclick="nav('complaints')" class="btn w-full text-left">Reclamações</button>
+  <button onclick="nav('mapa')" class="btn w-full text-left">Mapa</button>
+  <button onclick="nav('team')" class="btn w-full text-left">Equipa</button>
+  <div class="text-xs mt-10 opacity-60">Powered by Magestade Pura Digital</div>
 </div>
-
-<!-- MAIN -->
 <div class="flex-1 p-6 space-y-6">
-
-<!-- TOPBAR -->
-<div class="flex justify-between items-center">
-  <h2 class="text-2xl font-bold">Sistema Inteligente de Saneamento</h2>
-  <div class="opacity-60">Luanda</div>
-</div>
-
-<!-- DASHBOARD -->
-<div id="dashboard" class="view glass">
-  <h3 class="mb-3">Indicadores</h3>
-  <canvas id="chart"></canvas>
-</div>
-
-<!-- CLIENTES -->
-<div id="clients" class="view hidden glass">
-  <div class="flex justify-between mb-3">
-    <h3>Clientes</h3>
-    <button onclick="addClient()" class="bg-green-600 px-3 py-1 rounded">+ Novo</button>
+  <div class="flex justify-between items-center">
+    <h2 class="text-2xl font-bold">Sistema Inteligente de Saneamento</h2>
+    <div class="opacity-60">Luanda</div>
   </div>
-
-  <table class="w-full text-sm">
-    <tbody id="clientsTable"></tbody>
-  </table>
-
-  <div id="profile" class="mt-5 hidden"></div>
-</div>
-
-<!-- RECLAMAÇÕES -->
-<div id="complaints" class="view hidden glass">
-  <h3>Reclamações</h3>
-
-  <input id="nome" placeholder="Nome" class="p-2 text-black w-full mb-2">
-  <input id="bairro" placeholder="Bairro" class="p-2 text-black w-full mb-2">
-  <textarea id="msg" placeholder="Mensagem" class="p-2 text-black w-full mb-2"></textarea>
-
-  <button onclick="addComplaint()" class="bg-green-600 p-2 rounded w-full">
-    Enviar
-  </button>
-
-  <div id="complaintList" class="mt-4"></div>
-</div>
-
-<!-- MAPA -->
-<div id="mapa" class="view hidden glass">
-  <h3>Mapa Operacional</h3>
-  <div id="map"></div>
-</div>
-
-<!-- EQUIPA -->
-<div id="team" class="view hidden glass">
-  <h3>Nossa Equipa</h3>
-
-  <div class="grid md:grid-cols-3 gap-4">
-
-    <div class="glass">
-      <h4>Kapenda</h4>
-      <p>Director Geral</p>
-      <p class="text-sm opacity-60">"Transformar Luanda digitalmente."</p>
+  <div id="dashboard" class="view glass">
+    <h3 class="mb-3">Indicadores</h3>
+    <canvas id="chart"></canvas>
+  </div>
+  <div id="clients" class="view hidden glass">
+    <div class="flex justify-between mb-3">
+      <h3>Clientes</h3>
+      <button onclick="addClient()" class="btn">+ Novo</button>
     </div>
-
-    <div class="glass">
-      <h4>Alberto Marcos</h4>
-      <p>Operações</p>
+    <table class="w-full text-sm">
+      <thead><tr><th>Nome</th><th>Bairro</th><th>Estado</th><th></th></tr></thead>
+      <tbody id="clientsTable"></tbody>
+    </table>
+    <div id="profile" class="mt-5 hidden"></div>
+  </div>
+  <div id="complaints" class="view hidden glass">
+    <h3>Reclamações</h3>
+    <input id="nome" placeholder="Nome" class="p-2 text-black w-full mb-2">
+    <input id="bairro" placeholder="Bairro" class="p-2 text-black w-full mb-2">
+    <textarea id="msg" placeholder="Mensagem" class="p-2 text-black w-full mb-2"></textarea>
+    <button onclick="addComplaint()" class="btn w-full">Enviar</button>
+    <div id="formFeedback" class="mt-2 text-sm"></div>
+    <div id="complaintList" class="mt-4"></div>
+  </div>
+  <div id="mapa" class="view hidden glass">
+    <h3>Mapa Operacional</h3>
+    <div id="map"></div>
+  </div>
+  <div id="team" class="view hidden glass">
+    <h3>Nossa Equipa</h3>
+    <div class="grid md:grid-cols-3 gap-4">
+      <div class="glass"><h4>Kapenda</h4><p>Director Geral</p><p class="text-sm opacity-60">"Transformar Luanda digitalmente."</p></div>
+      <div class="glass"><h4>Alberto Marcos</h4><p>Operações</p></div>
+      <div class="glass"><h4>Jenny Baptista</h4><p>Administração</p></div>
     </div>
-
-    <div class="glass">
-      <h4>Jenny Baptista</h4>
-      <p>Administração</p>
-    </div>
-
   </div>
 </div>
-
-</div>
-
-<!-- CHAT -->
 <div class="fixed bottom-4 right-4 w-72 glass">
   <div id="chatBox" class="h-40 overflow-y-auto text-sm"></div>
   <input id="chatInput" class="w-full p-2 text-black mt-2">
-  <button onclick="chat()" class="bg-green-600 w-full mt-2 p-2 rounded">Enviar</button>
+  <button onclick="chat()" class="btn w-full mt-2">Enviar</button>
 </div>
-
 <script>
-
-const DB = JSON.parse(localStorage.getItem("db")) || {
-  clients:[],
-  complaints:[]
-};
-
-function save(){ localStorage.setItem("db", JSON.stringify(DB)); }
-
-function nav(id){
-  document.querySelectorAll(".view").forEach(v=>v.classList.add("hidden"));
-  document.getElementById(id).classList.remove("hidden");
-}
-
-function renderClients(){
-  const el=document.getElementById("clientsTable");
-  el.innerHTML="";
-
-  DB.clients.forEach(c=>{
-    el.innerHTML+=`
-      <tr>
-        <td>${c.nome}</td>
-        <td>${c.bairro}</td>
-        <td>${c.estado}</td>
-        <td><button onclick="profile(${c.id})">Ver</button></td>
-      </tr>
-    `;
-  });
-}
-
-function profile(id){
-  const c=DB.clients.find(x=>x.id==id);
-  document.getElementById("profile").classList.remove("hidden");
-
-  document.getElementById("profile").innerHTML=`
-    <div class="glass">
-      <h3>${c.nome}</h3>
-      <p>${c.telefone}</p>
-      <p>${c.rua}, ${c.bairro}</p>
-      <p>${c.estado}</p>
-    </div>
-  `;
-}
-
-function addClient(){
-  const nome=prompt("Nome:");
-  if(!nome) return;
-
-  DB.clients.push({
-    id:Date.now(),
-    nome,
-    bairro:"Luanda",
-    rua:"Nova Rua",
-    telefone:"+244900000000",
-    estado:"Regular"
-  });
-
-  save();
-  renderClients();
-}
-
-function addComplaint(){
-  const nome=document.getElementById("nome").value;
-  const bairro=document.getElementById("bairro").value;
-  const msg=document.getElementById("msg").value;
-
-  if(!nome || !msg) return;
-
-  DB.complaints.push({nome,bairro,msg});
-  save();
-  renderComplaints();
-  addMapPoint(bairro,msg);
-}
-
-function renderComplaints(){
-  const el=document.getElementById("complaintList");
-  el.innerHTML="";
-
-  DB.complaints.forEach(c=>{
-    el.innerHTML+=`
-      <div class="glass mt-2">
-        <b>${c.nome}</b> (${c.bairro})
-        <p>${c.msg}</p>
-      </div>
-    `;
-  });
-}
-
-let map;
-
-function initMap(){
-  map=L.map('map').setView([-8.83,13.23],12);
-
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-}
-
-function addMapPoint(bairro,msg){
-  if(!map) return;
-  L.marker([-8.83+Math.random()/10,13.23+Math.random()/10])
-    .addTo(map)
-    .bindPopup(bairro+" - "+msg);
-}
-
-function chat(){
-  const input=document.getElementById("chatInput");
-  const chat=document.getElementById("chatBox");
-
-  chat.innerHTML+=`<div class="text-green-400 text-right">${input.value}</div>`;
-
-  let resp="Pedido registado.";
-
-  if(input.value.includes("lixo")) resp="Equipa será enviada.";
-  if(input.value.includes("pagamento")) resp="Consulte sua conta.";
-
-  setTimeout(()=>{
-    chat.innerHTML+=`<div>${resp}</div>`;
-  },800);
-
-  input.value="";
-}
-
-new Chart(document.getElementById("chart"), {
-  type:'bar',
-  data:{
-    labels:["Seg","Ter","Qua","Qui","Sex"],
-    datasets:[{label:"Ocorrências",data:[12,19,8,15,10]}]
-  }
-});
-
-initMap();
-renderClients();
-renderComplaints();
-
+const safe = s => String(s||'').replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+const BAIRROS = {"Ingombota":[-8.814,13.234],"Maculusso":[-8.824,13.24],"Maianga":[-8.835,13.242]};
+const DB = JSON.parse(localStorage.getItem("db")||'{"clients":[],"complaints":[]}');
+function save(){localStorage.setItem("db", JSON.stringify(DB));}
+function nav(id){document.querySelectorAll(".view").forEach(v=>v.classList.add("hidden"));document.getElementById(id).classList.remove("hidden");}
+function renderClients(){const el=document.getElementById("clientsTable");el.innerHTML = DB.clients.map(c=>`<tr><td>${safe(c.nome)}</td><td>${safe(c.bairro)}</td><td>${safe(c.estado)}</td><td><button onclick="profile('${c.id}')">Ver</button></td></tr>`).join("") || <tr><td colspan="4" class="opacity-60">Sem clientes</td></tr>;}
+function profile(id){const c=DB.clients.find(x=>x.id==id);document.getElementById("profile").classList.remove("hidden");document.getElementById("profile").innerHTML=`<div class="glass"><h3>${safe(c.nome)}</h3><p>${safe(c.telefone)}</p><p>${safe(c.rua)}, ${safe(c.bairro)}</p><p>${safe(c.estado)}</p></div>`;}
+function addClient(){const nome=prompt("Nome:");if(!nome)return;DB.clients.push({id:crypto.randomUUID(),nome,bairro:"Ingombota",rua:"Rua Nova",telefone:"+244900000000",estado:"Regular"});save();renderClients();}
+function renderComplaints(){const el=document.getElementById("complaintList");el.innerHTML = DB.complaints.map(c=>`<div class="glass mt-2"><b>${safe(c.nome)}</b> (${safe(c.bairro)})<p>${safe(c.msg)}</p></div>`).join("");}
+function addComplaint(){const nome=document.getElementById("nome").value.trim(),bairro=document.getElementById("bairro").value.trim(),msg=document.getElementById("msg").value.trim(),fb=document.getElementById("formFeedback");if(!nome||!msg){fb.textContent="Preencha nome e mensagem.";return;}fb.textContent="";DB.complaints.push({nome,bairro,msg});save();renderComplaints();addMapPoint(bairro,msg);document.getElementById("nome").value="";document.getElementById("bairro").value="";document.getElementById("msg").value="";}
+let map;function initMap(){map=L.map('map').setView([-8.83,13.23],12);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);}
+function addMapPoint(bairro,msg){if(!map)return;const coord=BAIRROS[bairro]||[-8.83+Math.random()/100,13.23+Math.random()/100];L.marker(coord).addTo(map).bindPopup(${safe(bairro)} - ${safe(msg)});}
+function chat(){const input=document.getElementById("chatInput"),chat=document.getElementById("chatBox");const txt=input.value.trim();if(!txt)return;chat.innerHTML+=`<div class="text-green-400 text-right">${safe(txt)}</div>`;let resp="Pedido registado.";if(txt.includes("lixo"))resp="Equipa será enviada.";if(txt.includes("pagamento"))resp="Consulte sua conta.";chat.innerHTML+=`<div>${safe(resp)}</div>`;chat.scrollTop=chat.scrollHeight;input.value="";}
+new Chart(document.getElementById("chart"),{type:'bar',data:{labels:["Seg","Ter","Qua","Qui","Sex"],datasets:[{label:"Ocorrências",data:[12,19,8,15,10]}]}});
+initMap();renderClients();renderComplaints();
 </script>
-
 </body>
 </html>
