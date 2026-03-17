@@ -3,8 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>UTGSL Smart City V7</title>
+<title>Unidade Técnica de Gestão do Saneamento de Luanda - Institucional PRO</title>
 
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -14,23 +13,26 @@
 <style>
 body { background:#0b0f19; color:white; font-family:system-ui; }
 .glass { background:rgba(255,255,255,0.05); backdrop-filter:blur(12px); border-radius:14px; padding:16px; }
-.sidebar { width:260px; background:#0f172a; }
+.sidebar { width:280px; background:#0f172a; min-height:100vh; }
 .hidden { display:none; }
+input,textarea,select { color:black; }
+button { cursor:pointer; }
+.card-img { border-radius:12px; width:100%; height:200px; object-fit:cover; }
 </style>
 </head>
 
 <body class="flex h-screen">
 
 <!-- LOGIN -->
-<div id="loginScreen" class="flex items-center justify-center w-full">
-<div class="glass w-96 text-center">
-<h2 class="text-xl mb-4">Sistema UTGSL</h2>
+<div id="login" class="flex items-center justify-center w-full">
+<div class="glass w-96">
+<h2 class="text-xl mb-4 text-center">Acesso UTGSL</h2>
 <input id="user" placeholder="Nome" class="w-full p-2 mb-2">
 <select id="role" class="w-full p-2 mb-2">
 <option value="admin">Admin</option>
 <option value="operador">Operador</option>
 </select>
-<button onclick="Auth.login()" class="bg-green-500 w-full p-2">Entrar</button>
+<button onclick="loginUser()" class="bg-green-500 w-full p-2">Entrar</button>
 </div>
 </div>
 
@@ -39,30 +41,39 @@ body { background:#0b0f19; color:white; font-family:system-ui; }
 
 <!-- SIDEBAR -->
 <div class="sidebar p-4 space-y-2">
-<h2 class="text-xl font-bold">UTGSL</h2>
+<h2 class="text-xl font-bold mb-4">UTGSL</h2>
 
-<button onclick="Router.go('dashboard')">Dashboard</button>
-<button onclick="Router.go('map')">Mapa</button>
-<button onclick="Router.go('clients')">Clientes</button>
-<button onclick="Router.go('complaints')">Reclamações</button>
+<button onclick="show('dashboard')">Dashboard</button>
+<button onclick="show('map')">Mapa</button>
+<button onclick="show('clients')">Clientes</button>
+<button onclick="show('complaints')">Reclamações</button>
+<button onclick="show('feedback')">Feedback</button>
+<button onclick="show('institutional')">Institucional</button>
 
-<hr>
+<hr class="my-4">
 <div id="userInfo"></div>
-<button onclick="Auth.logout()" class="text-red-400">Sair</button>
+<button onclick="logout()" class="text-red-400 mt-2">Sair</button>
 </div>
 
 <!-- MAIN -->
 <div class="flex-1 flex flex-col">
 
 <div class="p-4 bg-black flex justify-between">
-<h1>Unidade Técnica de Gestão do Saneamento de Luanda</h1>
-<div>Smart City Platform</div>
+<h1 class="text-lg font-bold">Unidade Técnica de Gestão do Saneamento de Luanda</h1>
+<div>Powered by Magestade Pura Digital</div>
 </div>
 
-<div class="p-6 overflow-y-auto flex-1">
+<div class="p-6 overflow-y-auto flex-1 space-y-6">
 
 <!-- DASHBOARD -->
-<div id="dashboard"></div>
+<div id="dashboard">
+<div class="grid grid-cols-3 gap-4">
+<div class="glass">Clientes: <span id="kpiC"></span></div>
+<div class="glass">Reclamações: <span id="kpiR"></span></div>
+<div class="glass">Utilizador: <span id="kpiU"></span></div>
+</div>
+<canvas id="chart" class="mt-6"></canvas>
+</div>
 
 <!-- MAP -->
 <div id="mapView" class="hidden">
@@ -70,190 +81,223 @@ body { background:#0b0f19; color:white; font-family:system-ui; }
 </div>
 
 <!-- CLIENTES -->
-<div id="clients" class="hidden"></div>
+<div id="clients" class="hidden">
+<h2 class="text-xl mb-4">Clientes</h2>
+
+<input id="cName" placeholder="Nome" class="p-2 w-full mb-2">
+<input id="cPhone" placeholder="Telefone" class="p-2 w-full mb-2">
+<input id="cAddress" placeholder="Morada completa" class="p-2 w-full mb-2">
+
+<select id="cBairro" class="p-2 w-full mb-2">
+<option>Maianga</option>
+<option>Talatona</option>
+<option>Viana</option>
+<option>Kilamba</option>
+<option>Cazenga</option>
+</select>
+
+<button onclick="addClient()" class="bg-green-500 w-full p-2">Salvar</button>
+
+<div id="clientList" class="mt-4"></div>
+</div>
 
 <!-- RECLAMAÇÕES -->
-<div id="complaints" class="hidden"></div>
+<div id="complaints" class="hidden">
+<h2 class="text-xl mb-4">Reclamações</h2>
+
+<select id="rClient" class="p-2 w-full mb-2"></select>
+
+<textarea id="rMsg" class="p-2 w-full mb-2"></textarea>
+
+<button onclick="addComplaint()" class="bg-green-500 w-full p-2">Enviar</button>
+
+<div id="complaintList" class="mt-4"></div>
+</div>
+
+<!-- FEEDBACK -->
+<div id="feedback" class="hidden">
+<h2 class="text-xl mb-4">Feedback dos Munícipes</h2>
+
+<div class="glass">"Agora conseguimos reportar lixo rapidamente!" – Maria, Viana</div>
+<div class="glass mt-2">"Sistema muito eficiente e moderno." – João, Talatona</div>
+<div class="glass mt-2">"Luanda está a evoluir!" – Ana, Kilamba</div>
 
 </div>
+
+<!-- INSTITUCIONAL -->
+<div id="institutional" class="hidden space-y-4">
+
+<!-- Mensagem Director -->
+<div class="glass">
+<h2 class="text-xl font-bold mb-2">Mensagem do Director Geral</h2>
+<p>
+A Unidade Técnica de Gestão do Saneamento de Luanda assume o compromisso de liderar a transformação urbana através da inovação, eficiência e responsabilidade social.
+</p>
+<p class="mt-2">
+Num contexto de crescimento acelerado da nossa cidade, torna-se fundamental implementar soluções digitais inteligentes que aproximem os serviços públicos dos cidadãos, promovendo uma gestão mais transparente, participativa e eficaz.
+</p>
+<p class="mt-2">
+Este sistema representa um passo decisivo rumo a uma Luanda mais limpa, organizada e sustentável, onde cada munícipe tem voz activa na melhoria contínua dos serviços de saneamento.
+</p>
+<p class="mt-2 font-semibold">— Director Geral</p>
+</div>
+
+<!-- Missão / Visão / Valores -->
+<div class="grid md:grid-cols-3 gap-4">
+
+<div class="glass">
+<h2 class="text-lg font-bold">Missão</h2>
+<p>
+Garantir a gestão eficiente, sustentável e inovadora dos serviços de saneamento em Luanda, promovendo qualidade de vida, saúde pública e equilíbrio ambiental através da transformação digital.
+</p>
+</div>
+
+<div class="glass">
+<h2 class="text-lg font-bold">Visão</h2>
+<p>
+Ser uma referência nacional e africana na gestão inteligente de saneamento urbano, integrando tecnologia, participação cidadã e excelência operacional.
+</p>
+</div>
+
+<div class="glass">
+<h2 class="text-lg font-bold">Valores</h2>
+<ul class="list-disc ml-5 mt-2 space-y-1">
+<li><b>Transparência:</b> Prestação de serviços com clareza e responsabilidade</li>
+<li><b>Inovação:</b> Uso de tecnologia para soluções modernas</li>
+<li><b>Compromisso:</b> Foco no bem-estar dos munícipes</li>
+<li><b>Sustentabilidade:</b> Proteção ambiental e uso responsável de recursos</li>
+<li><b>Eficiência:</b> Resultados rápidos e de qualidade</li>
+<li><b>Participação:</b> Inclusão activa dos cidadãos</li>
+</ul>
+</div>
+
+</div>
+
+<!-- Equipa -->
+<div class="glass mt-4">
+<h2 class="text-xl font-bold mb-2">Nossa Equipa</h2>
+<div class="grid md:grid-cols-3 gap-4">
+<div class="glass p-2 text-center">
+<img src="https://randomuser.me/api/portraits/men/32.jpg" class="card-img mb-2">
+<p class="font-bold">Kapenda</p>
+<p>Diretor de Operações</p>
+<p>"Comprometido com resultados e inovação."</p>
+</div>
+<div class="glass p-2 text-center">
+<img src="https://randomuser.me/api/portraits/men/44.jpg" class="card-img mb-2">
+<p class="font-bold">Alberto Marcos</p>
+<p>Chefe de Projetos</p>
+<p>"Gestão eficiente e sustentável."</p>
+</div>
+<div class="glass p-2 text-center">
+<img src="https://randomuser.me/api/portraits/women/65.jpg" class="card-img mb-2">
+<p class="font-bold">Jenny Baptista</p>
+<p>Coordenadora de Atendimento</p>
+<p>"Foco no cidadão e participação."</p>
 </div>
 </div>
+</div>
+
+</div>
+
+</div> <!-- fim main -->
+
+</div> <!-- fim app -->
 
 <!-- CHAT -->
 <div class="fixed bottom-4 right-4 w-80 glass">
 <div id="chatBox" class="h-40 overflow-y-auto"></div>
 <input id="chatInput" class="w-full p-2">
-<button onclick="Chat.send()" class="bg-green-500 w-full p-2">Enviar</button>
+<button onclick="chat()" class="bg-green-500 w-full p-2">Enviar</button>
 </div>
 
 <script>
 
-/* ================= STATE ================= */
-const Store = {
-state: {
-user:null,
-clients:[],
-complaints:[]
-},
-listeners:[],
-subscribe(fn){ this.listeners.push(fn); },
-setState(newState){
-this.state = {...this.state, ...newState};
-this.listeners.forEach(fn=>fn(this.state));
-localStorage.setItem("db", JSON.stringify(this.state));
-},
-init(){
-const data = JSON.parse(localStorage.getItem("db"));
-if(data) this.state = data;
-}
-};
+// STATE
+const DB = JSON.parse(localStorage.getItem("db") || '{"clients":[],"complaints":[]}');
 
-/* ================= AUTH ================= */
-const Auth = {
-login(){
-Store.setState({
-user:{name:user.value, role:role.value}
-});
-loginScreen.classList.add("hidden");
-app.classList.remove("hidden");
+function save(){ localStorage.setItem("db", JSON.stringify(DB)); }
+
+// LOGIN
+function loginUser(){
+login.style.display="none";
+app.style.display="flex";
 userInfo.innerHTML = user.value + " ("+role.value+")";
-Router.go("dashboard");
-},
-logout(){ location.reload(); }
-};
-
-/* ================= ROUTER ================= */
-const Router = {
-go(view){
-document.querySelectorAll("#dashboard,#mapView,#clients,#complaints")
-.forEach(v=>v.classList.add("hidden"));
-
-document.getElementById(view==="map"?"mapView":view).classList.remove("hidden");
-
-Render[view]();
-}
-};
-
-/* ================= API ================= */
-const API = {
-delay(ms){ return new Promise(r=>setTimeout(r,ms)); },
-
-async addClient(data){
-await this.delay(400);
-
-Store.setState({
-clients:[...Store.state.clients, data]
-});
-},
-
-async addComplaint(data){
-await this.delay(400);
-
-Store.setState({
-complaints:[...Store.state.complaints, data]
-});
-}
-};
-
-/* ================= RENDER ================= */
-const Render = {
-
-dashboard(){
-dashboard.innerHTML = `
-<div class="grid grid-cols-3 gap-4">
-<div class="glass">Clientes: ${Store.state.clients.length}</div>
-<div class="glass">Reclamações: ${Store.state.complaints.length}</div>
-<div class="glass">Utilizador: ${Store.state.user.role}</div>
-</div>
-
-<canvas id="chart"></canvas>
-`;
-
-new Chart(document.getElementById("chart"),{
-type:"bar",
-data:{labels:["Jan","Fev","Mar"],
-datasets:[{data:[5,8,3]}]}
-});
-},
-
-clients(){
-clients.innerHTML = `
-<input id="cName" placeholder="Nome" class="p-2 w-full mb-2">
-<button onclick="Actions.addClient()" class="bg-green-500 w-full p-2">Adicionar</button>
-<div id="list"></div>
-`;
-
-let html="";
-Store.state.clients.forEach(c=>{
-html+=`<div class="glass mt-2">${c.name}</div>`;
-});
-document.getElementById("list").innerHTML=html;
-},
-
-complaints(){
-complaints.innerHTML = `
-<input id="rMsg" placeholder="Mensagem" class="p-2 w-full mb-2">
-<button onclick="Actions.addComplaint()" class="bg-green-500 w-full p-2">Enviar</button>
-<div id="listC"></div>
-`;
-
-let html="";
-Store.state.complaints.forEach(c=>{
-html+=`<div class="glass mt-2">${c.msg}</div>`;
-});
-document.getElementById("listC").innerHTML=html;
+kpiU.textContent = role.value;
+renderAll();
 }
 
-};
+// NAV
+function show(v){
+["dashboard","mapView","clients","complaints","feedback","institutional"]
+.forEach(x=>document.getElementById(x).classList.add("hidden"));
+document.getElementById(v==="map"?"mapView":v).classList.remove("hidden");
+}
 
-/* ================= ACTIONS ================= */
-const Actions = {
-
-addClient(){
-API.addClient({
+// CLIENT
+function addClient(){
+const c={
 id:crypto.randomUUID(),
-name:cName.value
-});
-},
-
-addComplaint(){
-API.addComplaint({
-id:crypto.randomUUID(),
-msg:rMsg.value
-});
-}
+name:cName.value,
+phone:cPhone.value,
+address:cAddress.value,
+bairro:cBairro.value,
+finance:"Regular"
 };
+DB.clients.push(c); save(); renderClients(); updateKPIs();
+}
 
-/* ================= MAP ================= */
+// COMPLAINT
+function addComplaint(){
+const c={id:crypto.randomUUID(), client:rClient.value, msg:rMsg.value};
+DB.complaints.push(c); save(); renderComplaints(); updateKPIs();
+}
+
+// RENDER
+function renderClients(){
+let html="";
+DB.clients.forEach(c=>{
+html+=`<div class="glass mt-2 p-2">
+<b>${c.name}</b><br>${c.address}<br>${c.phone}<br>${c.bairro}<br>${c.finance}
+</div>`;
+});
+clientList.innerHTML=html;
+rClient.innerHTML = DB.clients.map(c=>`<option>${c.name}</option>`).join("");
+}
+
+function renderComplaints(){
+let html="";
+DB.complaints.forEach(c=>{html+=`<div class="glass mt-2 p-2">${c.client}: ${c.msg}</div>`});
+complaintList.innerHTML=html;
+}
+
+function renderAll(){ renderClients(); renderComplaints(); updateKPIs(); }
+
+// KPI
+function updateKPIs(){ kpiC.textContent=DB.clients.length; kpiR.textContent=DB.complaints.length; }
+
+// MAP
 const map = L.map('map').setView([-8.83,13.23],12);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-/* ================= CHAT ================= */
-const Chat = {
-send(){
-let msg = chatInput.value;
-if(!msg) return;
-
-chatBox.innerHTML += `<div class="text-green-400">${msg}</div>`;
-
-let res = "A processar...";
-
-if(msg.includes("cliente")) res="Ver módulo clientes";
-if(msg.includes("lixo")) res="Equipa enviada";
-
-setTimeout(()=>{
-chatBox.innerHTML += `<div>${res}</div>`;
-chatBox.scrollTop = chatBox.scrollHeight;
-},500);
-
+// CHAT
+function chat(){
+let msg=chatInput.value; if(!msg) return;
+chatBox.innerHTML+=`<div class="text-green-400">${msg}</div>`;
+let res="A processar...";
+if(msg.includes("cliente")) res="Vá ao módulo Clientes";
+if(msg.includes("reclamação")) res="Registe uma reclamação";
+setTimeout(()=>{chatBox.innerHTML+=`<div>${res}</div>`; chatBox.scrollTop=chatBox.scrollHeight;},500);
 chatInput.value="";
 }
-};
 
-/* ================= INIT ================= */
-Store.init();
+// CHART
+new Chart(document.getElementById("chart"),{
+type:"bar",
+data:{labels:["Jan","Fev","Mar"], datasets:[{data:[4,8,6]}]}
+});
 
 </script>
 
 </body>
-</html>
+  </html>
