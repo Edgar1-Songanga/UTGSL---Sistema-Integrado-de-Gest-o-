@@ -3,93 +3,262 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>UTGSL — Unidade Técnica de Gestão do Saneamento de Luanda</title>
+<title>Unidade Técnica de Gestão do Saneamento de Luanda - Ultra Premium</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
-  body { font-family: 'Inter', sans-serif; }
-  #map { height: 450px; border-radius: 1rem; }
-  .glass { background: rgba(255,255,255,0.05); backdrop-filter: blur(10px); }
-  .hidden-section { display: none; }
-  .modal-bg { background: rgba(0,0,0,0.7); }
+  body { font-family: 'Inter', sans-serif; background:#111827; color:white; }
+  .sidebar { width:300px; height:100vh; background:#1f2937; position:fixed; top:0; left:0; padding:2rem; display:flex; flex-direction:column; gap:1rem; overflow-y:auto; }
+  .sidebar button { text-align:left; padding:0.5rem 1rem; border:none; background:none; color:white; cursor:pointer; border-radius:0.5rem; }
+  .sidebar button:hover, .sidebar button.active { background:#10B981; color:white; transition:0.3s; }
+  .topbar { height:60px; background:#111827; display:flex; justify-content:space-between; align-items:center; padding:0 2rem; position:fixed; width:100%; z-index:50; }
+  .content { margin-left:320px; padding:80px 2rem 2rem 2rem; }
+  section { margin-bottom:2rem; border-radius:1rem; overflow:hidden; }
+  .card { background:rgba(31,41,55,0.85); padding:1rem; border-radius:1rem; transition:0.3s; }
+  .card:hover { transform:translateY(-5px); }
+  #map { height:400px; border-radius:1rem; }
+  #chatbot { position:fixed; bottom:20px; right:20px; width:320px; max-height:420px; background:rgba(16,185,129,0.95); border-radius:1rem; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 10px 25px rgba(0,0,0,0.5); z-index:100; }
+  #chatbot-header { background:#065f46; padding:0.5rem; font-weight:bold; color:white; }
+  #chatbot-messages { flex:1; padding:0.5rem; overflow-y:auto; font-size:0.9rem; color:white; }
+  #chatbot-input { display:flex; border-top:1px solid #065f46; }
+  #chatbot-input input { flex:1; padding:0.5rem; border:none; outline:none; }
+  #chatbot-input button { padding:0.5rem; background:#065f46; color:white; cursor:pointer; }
 </style>
 </head>
-<body class="bg-[#0b0f19] text-white">
+<body>
 
-<!-- MODAL Diretor -->
-<div id="directorModal" class="fixed inset-0 modal-bg flex items-center justify-center">
-  <div class="glass p-6 rounded-2xl border border-[#10B981]/40 max-w-md text-center">
-    <h2 class="text-xl font-bold mb-2">Mensagem do Director Geral</h2>
-    <p class="italic">"Construímos dia a dia uma Luanda mais digna, com saneamento e gestão ambiental de excelência. Conto com cada cidadão."</p>
-    <p class="mt-2 font-bold">Alberto Marcos</p>
-    <button onclick="closeModal()" class="mt-4 bg-[#10B981] px-4 py-1 rounded">Entrar no Sistema</button>
-  </div>
+<!-- Sidebar -->
+<aside class="sidebar">
+  <h2 class="text-xl font-bold mb-4">UTGSL - Módulos</h2>
+  <button onclick="scrollToId('about');setActive(this)">Sobre Nós</button>
+  <button onclick="scrollToId('team');setActive(this)">Nossa Equipa</button>
+  <button onclick="scrollToId('mission');setActive(this)">Missão</button>
+  <button onclick="scrollToId('vision');setActive(this)">Visão</button>
+  <button onclick="scrollToId('values');setActive(this)">Valores</button>
+  <button onclick="scrollToId('blog');setActive(this)">Blog</button>
+  <button onclick="scrollToId('complaints');setActive(this)">Reclamações</button>
+  <button onclick="scrollToId('feedback');setActive(this)">Feedback</button>
+  <button onclick="scrollToId('mapPanel');setActive(this)">Mapa</button>
+  <button onclick="scrollToId('dashPanel');setActive(this)">Indicadores</button>
+  <button onclick="scrollToId('clientsPanel');setActive(this)">Clientes</button>
+  <button onclick="scrollToId('feedPanel');setActive(this)">Ocorrências</button>
+  <div class="mt-auto text-gray-400 text-xs text-center pt-4">Powered by <strong>Magestade Pura Digital</strong></div>
+</aside>
+
+<!-- Topbar -->
+<div class="topbar">
+  <h1 class="font-bold text-xl text-green-400">UTGSL</h1>
 </div>
 
-<!-- TOPBAR -->
-<nav class="flex justify-between items-center p-4 bg-[#0b0f19] border-b border-[#10B981]/20">
-  <h1 class="text-[#10B981] font-bold text-lg">UTGSL</h1>
-  <div class="space-x-4">
-    <a href="#about">Sobre</a>
-    <a href="#team">Equipa</a>
-    <a href="#login" class="bg-[#10B981] px-2 rounded">Login</a>
-  </div>
-</nav>
+<!-- Content -->
+<div class="content">
 
-<!-- LOGIN -->
-<div id="login" class="flex items-center justify-center h-screen hidden">
-  <div class="glass p-8 rounded-2xl w-80 border border-[#10B981]/30">
-    <h2 class="text-2xl font-bold mb-4 text-[#10B981]">UTGSL</h2>
-    <input placeholder="Usuário" class="w-full mb-2 p-2 rounded bg-gray-900" />
-    <input type="password" placeholder="Senha" class="w-full mb-4 p-2 rounded bg-gray-900" />
-    <button onclick="enterSystem()" class="w-full bg-[#10B981] p-2 rounded hover:bg-[#059669]">Entrar</button>
-  </div>
-</div>
-
-<!-- APP -->
-<div id="app" class="hidden p-4">
-  <section class="glass p-6 rounded-2xl mb-6">
-    <h2 class="text-xl font-bold mb-2">Sobre Nós</h2>
-    <p>Gestão do saneamento urbano em Luanda — inovação e sustentabilidade.</p>
-    <button onclick="toggleSection('mission')" class="mt-2 underline text-[#10B981]">Ver Missão e Visão</button>
-    <div id="mission" class="hidden-section mt-2">
-      <p><strong>Missão:</strong> Garantir saneamento eficiente e sustentável.</p>
-      <p><strong>Visão:</strong> Ser referência nacional até 2030.</p>
+  <!-- Sobre Nós -->
+  <section id="about" style="background:url('https://images.unsplash.com/photo-1593508512255-86ab42a8e620?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80'); background-size:cover; background-position:center;" class="p-6 mb-6">
+    <div class="card">
+      <h2 class="text-2xl font-bold mb-2">Sobre Nós</h2>
+      <p>A UTGSL é responsável pelo planejamento e execução dos serviços de saneamento em Luanda, garantindo água potável e gestão de resíduos de forma eficiente e sustentável.</p>
     </div>
   </section>
 
-  <div class="space-x-2 mb-4">
-    <button onclick="toggleSection('team')" class="bg-[#10B981] p-2 rounded">Equipa</button>
-    <button onclick="toggleSection('mapPanel'); initMap()" class="bg-[#10B981] p-2 rounded">Mapa</button>
-    <button onclick="toggleSection('dashPanel'); initChart()" class="bg-[#10B981] p-2 rounded">Indicadores</button>
-  </div>
-
-  <section id="team" class="hidden-section glass p-4 rounded-2xl mb-6">
+  <!-- Nossa Equipa -->
+  <section id="team" class="mb-6">
     <h2 class="text-2xl font-bold mb-4">Nossa Equipa</h2>
-    <p><strong>Alberto Marcos</strong> — Director Geral</p>
-    <p><strong>Jenny Baptista</strong> — Directora Administrativa</p>
-    <p><strong>Kapenda João</strong> — Chefe de Operações</p>
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <!-- Diretor Geral -->
+      <div class="card text-center">
+        <img src="https://images.unsplash.com/photo-1607746882042-944635dfe10e?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" alt="Diretor Geral" class="rounded-full mx-auto mb-2 w-24 h-24 object-cover">
+        <h3 class="font-bold">Carlos M. N'Gola</h3>
+        <p class="text-sm text-gray-400 mb-1">Diretor Geral</p>
+        <p class="text-xs italic">"Trabalhamos todos os dias para um saneamento urbano eficiente e sustentável em Luanda."</p>
+        <p class="text-xs mt-1">📧 carlos.ngola@utgsl.ao | 📞 +244 923 456 789 | 📍 Av. Deolinda Rodrigues, Luanda</p>
+      </div>
+      <!-- Kapenda -->
+      <div class="card text-center">
+        <img src="https://images.unsplash.com/photo-1599566150163-29194dcaad36?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" alt="Kapenda" class="rounded-full mx-auto mb-2 w-24 h-24 object-cover">
+        <h3 class="font-bold">Kapenda</h3>
+        <p class="text-sm text-gray-400 mb-1">Chefe de Operações</p>
+        <p class="text-xs italic">"Garantir eficiência nos serviços de saneamento é a nossa prioridade."</p>
+        <p class="text-xs mt-1">📧 kapenda@utgsl.ao | 📞 +244 923 555 123 | 📍 Talatona, Luanda</p>
+      </div>
+      <!-- Alberto Marcos -->
+      <div class="card text-center">
+        <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" alt="Alberto Marcos" class="rounded-full mx-auto mb-2 w-24 h-24 object-cover">
+        <h3 class="font-bold">Alberto Marcos</h3>
+        <p class="text-sm text-gray-400 mb-1">Coordenador Técnico</p>
+        <p class="text-xs italic">"Tecnologia e gestão juntas para uma Luanda mais limpa."</p>
+        <p class="text-xs mt-1">📧 alberto.marcos@utgsl.ao | 📞 +244 923 777 456 | 📍 Maianga, Luanda</p>
+      </div>
+      <!-- Jenny Baptista -->
+      <div class="card text-center">
+        <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" alt="Jenny Baptista" class="rounded-full mx-auto mb-2 w-24 h-24 object-cover">
+        <h3 class="font-bold">Jenny Baptista</h3>
+        <p class="text-sm text-gray-400 mb-1">Analista de Projetos</p>
+        <p class="text-xs italic">"Cada relatório que produzimos melhora a vida dos cidadãos."</p>
+        <p class="text-xs mt-1">📧 jenny.baptista@utgsl.ao | 📞 +244 923 888 789 | 📍 Benfica, Luanda</p>
+      </div>
+    </div>
   </section>
 
-  <div id="mapPanel" class="hidden-section glass p-4 rounded-2xl mb-6">
+  <!-- Missão / Visão / Valores -->
+  <section class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+    <div id="mission" class="card">
+      <h3 class="text-xl font-bold mb-2">Missão</h3>
+      <p>Garantir saneamento urbano eficiente e sustentável em toda Luanda, promovendo saúde e qualidade de vida.</p>
+    </div>
+    <div id="vision" class="card">
+      <h3 class="text-xl font-bold mb-2">Visão</h3>
+      <p>Ser referência nacional em gestão de saneamento urbano, inovação e sustentabilidade ambiental.</p>
+    </div>
+    <div id="values" class="card">
+      <h3 class="text-xl font-bold mb-2">Valores</h3>
+      <ul class="list-disc list-inside">
+        <li>Transparência</li>
+        <li>Responsabilidade</li>
+        <li>Inovação</li>
+        <li>Sustentabilidade</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- Feedback Munícipes -->
+  <section id="feedback" class="card mb-6">
+    <h2 class="text-2xl font-bold mb-4">Feedback dos Munícipes</h2>
+    <ul class="space-y-2">
+      <li class="bg-gray-800 p-2 rounded">"Os serviços digitais da UTGSL são muito práticos e fáceis de usar!" - Mariana, Maianga</li>
+      <li class="bg-gray-800 p-2 rounded">"Gostei do acompanhamento em tempo real das ocorrências." - João, Talatona</li>
+      <li class="bg-gray-800 p-2 rounded">"O atendimento rápido e eficiente melhorou nossa vida no bairro." - Cláudia, Benfica</li>
+    </ul>
+  </section>
+
+  <!-- Blog -->
+  <section id="blog" class="card mb-6">
+    <h2 class="text-2xl font-bold mb-4">Blog / Notícias</h2>
+    <p class="text-gray-300">Aqui serão publicadas notícias e atualizações sobre saneamento em Luanda.</p>
+  </section>
+
+  <!-- Reclamações -->
+  <section id="complaints" class="card mb-6">
+    <h2 class="text-2xl font-bold mb-4">Reclamações</h2>
+    <form id="complaintForm" class="flex flex-col gap-2">
+      <input type="text" placeholder="Nome" class="p-2 rounded bg-gray-900" required>
+      <input type="text" placeholder="Bairro" class="p-2 rounded bg-gray-900" required>
+      <input type="text" placeholder="Rua" class="p-2 rounded bg-gray-900" required>
+      <input type="tel" placeholder="Telefone" class="p-2 rounded bg-gray-900" required>
+      <select class="p-2 rounded bg-gray-900" required>
+        <option>Tipo de Ocorrência</option>
+        <option>Lixo</option>
+        <option>Entupimento</option>
+        <option>Água</option>
+      </select>
+      <textarea placeholder="Mensagem" class="p-2 rounded bg-gray-900" required></textarea>
+      <button type="submit" class="bg-green-600 p-2 rounded hover:bg-green-500 transition">Enviar</button>
+    </form>
+    <p id="complaintMsg" class="mt-2 text-green-400 hidden">Reclamação enviada com sucesso!</p>
+  </section>
+
+  <!-- Mapa -->
+  <section id="mapPanel" class="card mb-6">
     <h3>Mapa Operacional</h3>
     <div id="map"></div>
-  </div>
+  </section>
 
-  <div id="dashPanel" class="hidden-section glass p-4 rounded-2xl mb-6">
+  <!-- Dashboard -->
+  <section id="dashPanel" class="card mb-6">
     <h3>Indicadores Semanais</h3>
     <canvas id="chart"></canvas>
+  </section>
+
+  <!-- Clientes -->
+  <section id="clientsPanel" class="card mb-6">
+    <h3>Base de Clientes</h3>
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="text-gray-400">
+          <th>Tipo</th><th>Nome</th><th>Rua</th><th>Bairro</th><th>Estado Financeiro</th><th>Telefone</th><th>Ação</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Singular</td><td>Mateus João</td><td>Rua da Missão</td><td>Maianga</td>
+          <td class="text-green-400">Regular</td>
+          <td>+244 923 111 222</td>
+          <td><button onclick="viewClient('Mateus João')">Ver</button></td>
+        </tr>
+        <tr>
+          <td>Empresa</td><td>Grupo Kibabo Lda</td><td>Av. 21 de Janeiro</td><td>Talatona</td>
+          <td class="text-red-400">Dívida</td>
+          <td>+244 923 333 444</td>
+          <td><button onclick="viewClient('Grupo Kibabo')">Ver</button></td>
+        </tr>
+      </tbody>
+    </table>
+    <div id="clientDetail" class="hidden card mt-4">
+      <h3>Perfil do Cliente</h3>
+      <p id="clientName" class="font-bold"></p>
+      <p>Morada: <span id="clientAddress"></span></p>
+      <p>Telefone: <span id="clientPhone"></span></p>
+      <p>Estado Financeiro: <span id="clientStatus"></span></p>
+      <p>Histórico Financeiro:</p>
+      <ul id="clientHistory" class="text-sm">
+        <li>Jan: Pago</li>
+        <li>Fev: Pago</li>
+        <li>Mar: Em dívida</li>
+      </ul>
+      <button class="mt-2 bg-blue-600 p-2 rounded">Emitir Fatura</button>
+    </div>
+  </section>
+
+  <!-- Feed -->
+  <section id="feedPanel" class="card mb-6">
+    <h3>Ocorrências em Tempo Real</h3>
+    <ul id="feed"></ul>
+  </section>
+
+</div>
+
+<!-- Chatbot -->
+<div id="chatbot">
+  <div id="chatbot-header">Chatbot UTGSL</div>
+  <div id="chatbot-messages"></div>
+  <div id="chatbot-input">
+    <input type="text" placeholder="Digite sua pergunta...">
+    <button onclick="sendChat()">Enviar</button>
   </div>
 </div>
 
 <script>
-function closeModal(){ document.getElementById('directorModal').classList.add('hidden'); document.getElementById('login').classList.remove('hidden'); }
-function enterSystem(){ document.getElementById('login').classList.add('hidden'); document.getElementById('app').classList.remove('hidden'); }
-function toggleSection(id){ const el=document.getElementById(id); el.style.display = el.style.display==='block'?'none':'block'; }
-let mapInit=false; function initMap(){ if(mapInit) return; mapInit=true; const map=L.map('map').setView([-8.839,13.289],12); L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map); }
-let chartInit=false; function initChart(){ if(chartInit) return; chartInit=true; new Chart(document.getElementById('chart'), { type:'line', data:{ labels:['Seg','Ter','Qua','Qui','Sex'], datasets:[{label:'Ocorrências', data:[12,19,14,26,20], borderColor:'#10B981', tension:0.4}] } }); }
-</script>
-</body>
-</html>
+// Sidebar active
+function setActive(button){ document.querySelectorAll('.sidebar button').forEach(b=>b.classList.remove('active')); button.classList.add('active'); }
+function scrollToId(id){ document.getElementById(id).scrollIntoView({behavior:'smooth'}); }
+
+// Init Map, Chart, Feed
+function init(){
+  const map=L.map('map').setView([-8.839,13.289],12);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+  L.marker([-8.84,13.23]).addTo(map).bindPopup('Maianga - Entupimento');
+  L.marker([-8.90,13.18]).addTo(map).bindPopup('Talatona - Lixo acumulado');
+
+  new Chart(document.getElementById('chart'), {
+    type:'line',
+    data:{
+      labels:['Seg','Ter','Qua','Qui','Sex'],
+      datasets:[{label:'Incidentes', data:[10,20,15,30,18], borderColor:'#10B981', backgroundColor:'rgba(16,185,129,0.2)', tension:0.3}]
+    }
+  });
+
+  const feed=document.getElementById('feed');
+  setInterval(()=>{
+    const li=document.createElement('li');
+    li.className='bg-gray-700 p-2 mt-1 rounded';
+    li.innerText='Ocorrência registada em Luanda - '+new Date().toLocaleTimeString();
+    feed.prepend(li);
+  },4000);
+}
+init();
+
+// Chatbot
+function sendChat(){
+  const input=document.querySelector('#
