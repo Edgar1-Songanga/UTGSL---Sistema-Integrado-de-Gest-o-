@@ -1,80 +1,118 @@
-<!DOCTYPE html><html lang="pt">
+<!DOCTYPE html>
+<html lang="pt">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SIGS LUANDA ULTRA</title>  <script src="https://cdn.tailwindcss.com"></script>  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>  <style>
+  <title>SIGS LUANDA ULTRA</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <style>
     #map { height: 350px; }
-  </style></head>
-<body class="bg-gray-950 text-white font-sans"><!-- LOGIN --><div id="login" class="flex items-center justify-center h-screen">
+    /* sidebar fixa */
+    .sidebar { width: 240px; }
+    @media (max-width: 768px) {
+      .sidebar { display: none; }
+    }
+  </style>
+</head>
+<body class="bg-gray-950 text-white font-sans">
+<!-- LOGIN -->
+<div id="login" class="flex items-center justify-center h-screen">
   <div class="bg-gray-900 p-8 rounded-2xl w-80">
     <h2 class="text-xl mb-4">SIGS Luanda</h2>
     <input placeholder="Usuário" class="w-full mb-2 p-2 rounded bg-gray-800" />
     <input type="password" placeholder="Senha" class="w-full mb-4 p-2 rounded bg-gray-800" />
     <button onclick="enterSystem()" class="w-full bg-green-600 p-2 rounded">Entrar</button>
   </div>
-</div><!-- APP --><div id="app" class="hidden"><nav class="flex justify-between p-4 bg-gray-900">
-  <h1 class="font-bold">SIGS LUANDA ULTRA</h1>
-  <span>Admin - UTGSL</span>
-</nav><div class="p-4 grid grid-cols-1 md:grid-cols-2 gap-4"><!-- MAP --><div class="bg-gray-800 p-4 rounded-2xl">
-  <h3>Mapa Operacional</h3>
-  <div id="map"></div>
-</div><!-- DASH --><div class="bg-gray-800 p-4 rounded-2xl">
-  <h3>Indicadores Semanais</h3>
-  <canvas id="chart"></canvas>
-</div><!-- CLIENTES --><div class="bg-gray-800 p-4 rounded-2xl col-span-2">
-  <h3>Base de Clientes</h3>
-  <table class="w-full text-sm">
-    <thead>
-      <tr class="text-gray-400">
-        <th>Tipo</th>
-        <th>Nome</th>
-        <th>Bairro</th>
-        <th>Rua</th>
-        <th>Estado</th>
-        <th>Ação</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td>Singular</td>
-        <td>Mateus João</td>
-        <td>Maianga</td>
-        <td>Rua da Missão</td>
-        <td class="text-green-400">Regular</td>
-        <td><button onclick="viewClient('Mateus João')">Ver</button></td>
-      </tr>
-      <tr>
-        <td>Empresa</td>
-        <td>Grupo Kibabo Lda</td>
-        <td>Talatona</td>
-        <td>Av. 21 de Janeiro</td>
-        <td class="text-red-400">Dívida</td>
-        <td><button onclick="viewClient('Grupo Kibabo')">Ver</button></td>
-      </tr>
-    </tbody>
-  </table>
-</div><!-- CLIENT DETAIL --><div id="clientDetail" class="hidden bg-gray-800 p-4 rounded-2xl col-span-2">
-  <h3>Perfil do Cliente</h3>
-  <p id="clientName"></p>
-  <p>Histórico Financeiro:</p>
-  <ul class="text-sm">
-    <li>Jan: Pago</li>
-    <li>Fev: Pago</li>
-    <li>Mar: Em dívida</li>
-  </ul>
-  <button class="mt-2 bg-blue-600 p-2 rounded">Emitir Fatura</button>
-</div><!-- FEED --><div class="bg-gray-800 p-4 rounded-2xl col-span-2">
-  <h3>Ocorrências em Tempo Real</h3>
-  <ul id="feed"></ul>
-</div></div>
-</div><script>
+</div>
+
+<!-- APP -->
+<div id="app" class="hidden flex">
+  <!-- SIDEBAR -->
+  <aside class="sidebar bg-gray-900 p-4 flex flex-col gap-2">
+    <h2 class="font-bold mb-2">SIGS</h2>
+    <button onclick="scrollToId('mapPanel')" class="text-left p-2 rounded hover:bg-gray-800">Mapa</button>
+    <button onclick="scrollToId('dashPanel')" class="text-left p-2 rounded hover:bg-gray-800">Indicadores</button>
+    <button onclick="scrollToId('clientsPanel')" class="text-left p-2 rounded hover:bg-gray-800">Clientes</button>
+    <button onclick="scrollToId('feedPanel')" class="text-left p-2 rounded hover:bg-gray-800">Ocorrências</button>
+  </aside>
+
+  <div class="flex-1">
+    <nav class="flex justify-between p-4 bg-gray-900">
+      <h1 class="font-bold">SIGS LUANDA ULTRA</h1>
+      <span>Admin - UTGSL</span>
+    </nav>
+
+    <div class="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+      <!-- MAP -->
+      <div id="mapPanel" class="bg-gray-800 p-4 rounded-2xl">
+        <h3>Mapa Operacional</h3>
+        <div id="map"></div>
+      </div>
+
+      <!-- DASH -->
+      <div id="dashPanel" class="bg-gray-800 p-4 rounded-2xl">
+        <h3>Indicadores Semanais</h3>
+        <canvas id="chart"></canvas>
+      </div>
+
+      <!-- CLIENTES -->
+      <div id="clientsPanel" class="bg-gray-800 p-4 rounded-2xl col-span-2">
+        <h3>Base de Clientes</h3>
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="text-gray-400">
+              <th>Tipo</th><th>Nome</th><th>Bairro</th><th>Rua</th><th>Estado</th><th>Ação</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Singular</td><td>Mateus João</td><td>Maianga</td><td>Rua da Missão</td>
+              <td class="text-green-400">Regular</td>
+              <td><button onclick="viewClient('Mateus João')">Ver</button></td>
+            </tr>
+            <tr>
+              <td>Empresa</td><td>Grupo Kibabo Lda</td><td>Talatona</td><td>Av. 21 de Janeiro</td>
+              <td class="text-red-400">Dívida</td>
+              <td><button onclick="viewClient('Grupo Kibabo')">Ver</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- PERFIL (painel lateral reutilizado) -->
+      <div id="clientDetail" class="hidden bg-gray-800 p-4 rounded-2xl col-span-2">
+        <h3>Perfil do Cliente</h3>
+        <p id="clientName"></p>
+        <p>Histórico Financeiro:</p>
+        <ul class="text-sm">
+          <li>Jan: Pago</li>
+          <li>Fev: Pago</li>
+          <li>Mar: Em dívida</li>
+        </ul>
+        <button class="mt-2 bg-blue-600 p-2 rounded">Emitir Fatura</button>
+      </div>
+
+      <!-- FEED -->
+      <div id="feedPanel" class="bg-gray-800 p-4 rounded-2xl col-span-2">
+        <h3>Ocorrências em Tempo Real</h3>
+        <ul id="feed"></ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
 function enterSystem(){
   document.getElementById('login').classList.add('hidden');
   document.getElementById('app').classList.remove('hidden');
   init();
 }
-
+function scrollToId(id){
+  document.getElementById(id).scrollIntoView({behavior:'smooth'});
+}
 function init(){
   new Chart(document.getElementById('chart'), {
     type: 'line',
@@ -86,7 +124,6 @@ function init(){
 
   const map = L.map('map').setView([-8.839,13.289], 12);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-
   L.marker([-8.84,13.23]).addTo(map).bindPopup('Maianga - Entupimento');
   L.marker([-8.90,13.18]).addTo(map).bindPopup('Talatona - Lixo acumulado');
 
@@ -98,10 +135,10 @@ function init(){
     feed.prepend(li);
   },3000);
 }
-
 function viewClient(name){
   document.getElementById('clientDetail').classList.remove('hidden');
   document.getElementById('clientName').innerText = name;
 }
-</script></body>
-  </html>
+</script>
+</body>
+</html>
