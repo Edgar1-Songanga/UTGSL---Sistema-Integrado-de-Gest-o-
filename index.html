@@ -3,308 +3,191 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>Unidade Técnica de Gestão do Saneamento de Luanda</title>
-
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-
 <style>
-body { margin:0; background:#020617; color:white; font-family:system-ui; }
-
-#bg {
-  position:fixed;
-  inset:0;
-  z-index:0;
-  transition:1s;
-}
-
-.glass {
-  background:rgba(255,255,255,0.06);
-  backdrop-filter:blur(18px);
-  border-radius:18px;
-  padding:20px;
-  border:1px solid rgba(255,255,255,0.08);
-  transition:0.3s;
-}
-.glass:hover { transform:translateY(-4px); }
-
-.sidebar {
-  width:260px;
-  backdrop-filter:blur(20px);
-}
-
-.nav-btn {
-  padding:12px;
-  border-radius:12px;
-  transition:0.3s;
-}
-.nav-btn:hover {
-  background:rgba(255,255,255,0.08);
-  transform:translateX(5px);
-}
-.active {
-  background:linear-gradient(90deg,#10b98133,#10b98111);
-}
-
-.fade { animation:fadeIn 0.5s ease; }
-@keyframes fadeIn {
-  from {opacity:0; transform:translateY(10px);}
-  to {opacity:1; transform:translateY(0);}
-}
-
-.hero {
-  background:linear-gradient(to right, rgba(0,0,0,0.8), rgba(0,0,0,0.6));
-}
-
-#map { height:420px; }
+body{margin:0;font-family:system-ui;background:#010210;color:white;}
+#bg{position:fixed;inset:0;z-index:0;background-size:cover;background-position:center;transition:1s;}
+.glass{background:rgba(255,255,255,0.06);backdrop-filter:blur(18px);border-radius:18px;padding:20px;border:1px solid rgba(255,255,255,0.08);margin-bottom:10px;transition:0.3s;}
+.glass:hover{transform:translateY(-6px) scale(1.02);}
+.sidebar{width:260px;backdrop-filter:blur(20px);min-height:100vh;}
+.nav-btn{padding:12px;border-radius:12px;transition:0.3s;cursor:pointer;text-align:left;}
+.nav-btn:hover{background:rgba(255,255,255,0.08);transform:translateX(5px);}
+.active{background:linear-gradient(90deg,#10b98133,#10b98111);}
+.fade{animation:fadeIn 0.5s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+#map{height:400px;border-radius:18px;}
+#chat{position:fixed;bottom:10px;right:10px;width:72;backdrop-filter:blur(15px);border-radius:18px;padding:10px;z-index:10;background:rgba(255,255,255,0.06);}
+#chatBox{height:150px;overflow-y:auto;margin-bottom:5px;font-size:0.8rem;}
+h1.gradient-title{font-size:2.8rem;font-weight:900;background:linear-gradient(90deg,#10b981,#3b82f6,#facc15);-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-shadow:2px 2px 5px rgba(0,0,0,0.4);}
+@media(max-width:768px){.sidebar{width:100%;position:fixed;bottom:0;left:0;display:flex;justify-content:space-around;padding:10px;z-index:10;}.nav-btn{padding:6px;font-size:0.7rem;}h1.gradient-title{font-size:1.8rem;}}
 </style>
 </head>
-
-<body class="flex">
+<body class="flex flex-col md:flex-row">
 
 <div id="bg"></div>
 
 <!-- SIDEBAR -->
 <div class="sidebar p-4 flex flex-col gap-2 relative z-10">
-<h2 class="text-xl font-bold mb-4">UTGSL</h2>
-
-<button class="nav-btn active" onclick="nav('dashboard',this)">Dashboard</button>
-<button class="nav-btn" onclick="nav('clients',this)">Clientes</button>
-<button class="nav-btn" onclick="nav('complaints',this)">Reclamações</button>
-<button class="nav-btn" onclick="nav('map',this)">Mapa</button>
-<button class="nav-btn" onclick="nav('feedback',this)">Feedback</button>
-<button class="nav-btn" onclick="nav('institutional',this)">Institucional</button>
-
-<div class="mt-auto text-xs text-gray-400">
-Powered by Magestade Pura Digital
-</div>
+<h2 class="text-xl font-bold mb-4">UTGSL Call Center</h2>
+<div class="nav-btn active" onclick="nav('home',this)">Home</div>
+<div class="nav-btn" onclick="nav('report',this)">Reportar Problema</div>
+<div class="nav-btn" onclick="nav('clients',this)">Clientes</div>
+<div class="nav-btn" onclick="nav('staff',this)">Equipa / Staff</div>
+<div class="nav-btn" onclick="nav('dashboard',this)">Dashboard Agente</div>
+<div class="nav-btn" onclick="nav('map',this)">Mapa</div>
+<div class="nav-btn" onclick="nav('feedback',this)">Feedback</div>
+<div class="nav-btn" onclick="nav('notifications',this)">Notificações</div>
+<div class="mt-auto text-xs text-gray-400">Powered by Magestade Pura Digital</div>
 </div>
 
-<!-- MAIN -->
-<div class="flex-1 flex flex-col relative z-10">
-
-<!-- HERO -->
-<div class="hero p-8 border-b border-white/10">
-
-<h1 class="text-3xl md:text-5xl font-bold">
-Unidade Técnica de Gestão do Saneamento de Luanda
-</h1>
-
-<p class="text-gray-300 mt-2 max-w-2xl">
-Plataforma Digital Inteligente para Gestão de Saneamento Urbano em Tempo Real
-</p>
-
-<div class="mt-4 flex flex-wrap gap-4 text-sm text-gray-400">
-<span>Director: Kapenda</span>
-<span>Operações: Alberto Marcos</span>
-<span>Atendimento: Jenny Baptista</span>
-</div>
-
-</div>
-
-<!-- CONTENT -->
-<div id="content" class="p-6 overflow-y-auto"></div>
-
+<!-- MAIN CONTENT -->
+<div class="flex-1 p-6 overflow-y-auto relative z-10">
+<div id="content"></div>
 </div>
 
 <!-- CHATBOT -->
-<div id="chat" class="fixed bottom-4 right-4 w-72 glass z-10">
-<div class="text-sm mb-2">Assistente Virtual</div>
-<div id="chatBox" class="h-40 overflow-y-auto text-xs mb-2"></div>
-<input id="chatInput" placeholder="Escreva..." 
-class="w-full p-2 text-black rounded"
-onkeydown="if(event.key==='Enter') sendMsg()">
+<div id="chat">
+<div class="text-sm mb-1">Assistente Virtual</div>
+<div id="chatBox"></div>
+<input id="chatInput" placeholder="Escreva..." class="w-full p-2 text-black rounded" onkeydown="if(event.key==='Enter') sendMsg()">
 </div>
 
 <script>
-
-// BACKGROUND ROTATION
+// BACKGROUND ROTATIVO
 const imgs=[
 "https://images.unsplash.com/photo-1581578731548-c64695cc6952",
 "https://images.unsplash.com/photo-1604187351574-c75ca79f5807",
 "https://images.unsplash.com/photo-1501004318641-b39e6451bec6"
 ];
-
 let i=0;
-function bg(){
-document.getElementById("bg").style.background=
-`linear-gradient(rgba(0,0,0,0.75),rgba(0,0,0,0.9)),url(${imgs[i]}) center/cover fixed`;
-i=(i+1)%imgs.length;
-}
+function bg(){document.getElementById("bg").style.background=`linear-gradient(rgba(0,0,0,0.75),rgba(0,0,0,0.9)),url(${imgs[i]}) center/cover fixed`; i=(i+1)%imgs.length;}
 setInterval(bg,7000); bg();
 
-// DATABASE
-let DB = JSON.parse(localStorage.getItem("utgsl") || '{"clients":[],"complaints":[]}');
-function save(){ localStorage.setItem("utgsl",JSON.stringify(DB)); }
+// DATABASE DUMMY
+let DB=JSON.parse(localStorage.getItem("utgsl")||`{"clients":[{"name":"Mateus João","type":"Individual","address":"Rua da Missão, Maianga","phone":"921111111","status":"Ativo","financial":"Regular"}],"staff":[{"name":"Kapenda","role":"Diretor Geral","msg":"Estamos comprometidos com a transformação digital e o saneamento de Luanda."},{"name":"Alberto Marcos","role":"Operações"},{"name":"Jenny Baptista","role":"Atendimento"}],"complaints":[],"feedback":[{"name":"Cidadão 1","msg":"Adoro a rapidez do atendimento!"},{"name":"Cidadão 2","msg":"Sistema muito intuitivo!"}],"notifications":[{"msg":"Sistema atualizado hoje"}]}`);
+function save(){localStorage.setItem("utgsl",JSON.stringify(DB));}
 
-// NAV
+// NAVIGATION
 function nav(page,el){
 document.querySelectorAll(".nav-btn").forEach(b=>b.classList.remove("active"));
 el.classList.add("active");
-
-if(page==="dashboard") renderDashboard();
-if(page==="clients") renderClients();
-if(page==="complaints") renderComplaints();
-if(page==="map") renderMap();
-if(page==="feedback") renderFeedback();
-if(page==="institutional") renderInstitutional();
+switch(page){
+case"home":renderHome();break;
+case"report":renderReport();break;
+case"clients":renderClients();break;
+case"staff":renderStaff();break;
+case"dashboard":renderDashboard();break;
+case"map":renderMap();break;
+case"feedback":renderFeedback();break;
+case"notifications":renderNotifications();break;
+}
 }
 
-// DASHBOARD
-function renderDashboard(){
+// RENDER FUNCTIONS
+function renderHome(){
 content.innerHTML=`<div class="fade">
-
-<div class="grid md:grid-cols-4 gap-6">
-<div class="glass"><p>Clientes</p><h2>${DB.clients.length}</h2></div>
-<div class="glass"><p>Reclamações</p><h2>${DB.complaints.length}</h2></div>
-<div class="glass"><p>Resolvidas</p><h2>12</h2></div>
-<div class="glass"><p>Status</p><h2>Operacional</h2></div>
-</div>
-
-<div class="glass mt-6"><canvas id="chart"></canvas></div>
-
-</div>`;
-
-new Chart(document.getElementById("chart"),{
-type:"bar",
-data:{labels:["Seg","Ter","Qua","Qui","Sex"],datasets:[{data:[12,19,7,15,10]}]}
-});
-}
-
-// CLIENTS
-function renderClients(){
-content.innerHTML=`<div class="fade">
-<h2>Clientes</h2>
-
-<input id="name" placeholder="Nome" class="p-2 w-full mb-2 text-black">
-<input id="phone" placeholder="Telefone" class="p-2 w-full mb-2 text-black">
-<input id="address" placeholder="Morada" class="p-2 w-full mb-2 text-black">
-
-<select id="status" class="p-2 w-full mb-2 text-black">
-<option>Regular</option><option>Dívida</option>
-</select>
-
-<button onclick="addClient()" class="bg-green-600 p-2 w-full">Guardar</button>
-
-<div class="mt-4">
-${DB.clients.map(c=>`<div class="glass mt-2">
-<b>${c.name}</b><br>
-${c.phone}<br>${c.address}<br>
-<span class="${c.status==='Regular'?'text-green-400':'text-red-400'}">${c.status}</span>
-</div>`).join("")}
+<h1 class="gradient-title">Unidade Técnica de Gestão do Saneamento de Luanda</h1>
+<p class="text-gray-300 mt-2 text-lg">Acompanhe ocorrências de saneamento, reporte problemas e aceda a informações importantes.</p>
+<div class="grid md:grid-cols-3 gap-4 mt-4">
+<div class="glass"><b>Total Clientes</b><p>${DB.clients.length}</p></div>
+<div class="glass"><b>Ocorrências</b><p>${DB.complaints.length}</p></div>
+<div class="glass"><b>Feedback</b><p>${DB.feedback.length}</p></div>
 </div>
 </div>`;
 }
 
-function addClient(){
-DB.clients.push({
-name:name.value,
-phone:phone.value,
-address:address.value,
-status:status.value
-});
-save(); renderClients();
-}
-
-// COMPLAINTS
-function renderComplaints(){
+function renderReport(){
 content.innerHTML=`<div class="fade">
-<h2>Reclamações</h2>
-
-<input id="complaintName" placeholder="Nome" class="p-2 w-full mb-2 text-black">
-<textarea id="msg" placeholder="Mensagem" class="p-2 w-full mb-2 text-black"></textarea>
-
-<select id="type" class="p-2 w-full mb-2 text-black">
-<option>Lixo</option><option>Esgoto</option>
+<h2 class="text-xl font-semibold text-yellow-400">Reportar Problema de Saneamento</h2>
+<select id="rType" class="p-2 w-full mb-2 text-black">
+<option>Fuga de água</option>
+<option>Entupimento de esgoto</option>
+<option>Lixo acumulado</option>
+<option>Drenagem bloqueada</option>
+<option>Inundação</option>
 </select>
-
-<button onclick="addComplaint()" class="bg-green-600 p-2 w-full">Enviar</button>
-
-<div class="mt-4">
-${DB.complaints.map(c=>`<div class="glass mt-2">
-<b>${c.name}</b> (${c.type})<br>${c.msg}
-</div>`).join("")}
-</div>
+<input id="rLocation" placeholder="Localização (Bairro)" class="p-2 w-full mb-2 text-black">
+<textarea id="rMsg" placeholder="Descrição do problema" class="p-2 w-full mb-2 text-black"></textarea>
+<input id="rPhone" placeholder="Telefone / Nome" class="p-2 w-full mb-2 text-black">
+<button onclick="addComplaint()" class="bg-green-600 p-2 w-full rounded">Submeter</button>
+<div class="mt-4">${DB.complaints.map(c=>`<div class="glass fade"><b>${c.name}</b> (${c.type})<br>${c.msg}<br>Bairro: ${c.location}<br>Status: ${c.status || "Recebido"}</div>`).join("")}</div>
 </div>`;
 }
 
 function addComplaint(){
-DB.complaints.push({
-name:complaintName.value,
-msg:msg.value,
-type:type.value
-});
-save(); renderComplaints();
+let name=document.getElementById("rPhone").value,type=document.getElementById("rType").value,msg=document.getElementById("rMsg").value,loc=document.getElementById("rLocation").value;
+if(!name||!msg||!loc){alert("Preencha todos os campos."); return;}
+DB.complaints.push({name,type,msg,location:loc,status:"Recebido"});save();renderReport();
 }
 
-// MAP
+function renderClients(){
+content.innerHTML=`<div class="fade">
+<h2 class="text-xl font-semibold text-cyan-400">Clientes / Utentes</h2>
+${DB.clients.map(c=>`<div class="glass fade"><b>${c.name}</b><br>Tipo: ${c.type}<br>Morada: ${c.address}<br>Telefone: ${c.phone}<br>Status: ${c.status}<br>Estado Financeiro: ${c.financial}</div>`).join("")}
+</div>`;
+}
+
+function renderStaff(){
+content.innerHTML=`<div class="fade">
+<h2 class="text-xl font-semibold text-purple-400">Equipa / Staff</h2>
+<div class="grid md:grid-cols-3 gap-4 mt-4">
+${DB.staff.map(s=>`<div class="glass fade"><b>${s.name}</b><p>${s.role}</p>${s.msg?'<p>"'+s.msg+'"</p>':''}</div>`).join("")}
+</div>
+</div>`;
+}
+
+function renderDashboard(){
+content.innerHTML=`<div class="fade">
+<h2 class="text-xl font-semibold text-green-400">Dashboard do Agente</h2>
+<div class="grid md:grid-cols-3 gap-4">
+<div class="glass">Clientes: ${DB.clients.length}</div>
+<div class="glass">Ocorrências: ${DB.complaints.length}</div>
+<div class="glass">Feedback: ${DB.feedback.length}</div>
+</div>
+<div class="glass mt-4"><canvas id="chart"></canvas></div>
+</div>`;
+new Chart(document.getElementById("chart"),{type:"bar",data:{labels:["Seg","Ter","Qua","Qui","Sex"],datasets:[{label:"Ocorrências",data:[12,19,7,15,10],backgroundColor:"#10b981"}]}});
+}
+
 function renderMap(){
 content.innerHTML=`<div id="map"></div>`;
 const map=L.map('map').setView([-8.83,13.23],12);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-
-[
-[-8.83,13.23,"Centro"],
-[-8.90,13.18,"Talatona"],
-[-8.84,13.25,"Maianga"]
-].forEach(p=>L.marker([p[0],p[1]]).addTo(map).bindPopup(p[2]));
+[[-8.83,13.23,"Centro"],[-8.90,13.18,"Talatona"],[-8.84,13.25,"Maianga"]].forEach(p=>L.marker([p[0],p[1]]).addTo(map).bindPopup(p[2]));
 }
 
-// FEEDBACK
 function renderFeedback(){
 content.innerHTML=`<div class="fade">
-<div class="glass">Sistema moderno e eficiente</div>
-<div class="glass mt-2">Facilitou o saneamento</div>
+<h2 class="text-xl font-semibold text-pink-400">Feedback dos Munícipes</h2>
+${DB.feedback.map(f=>`<div class="glass fade"><b>${f.name}</b>: ${f.msg}</div>`).join("")}
 </div>`;
 }
 
-// INSTITUTIONAL
-function renderInstitutional(){
+function renderNotifications(){
 content.innerHTML=`<div class="fade">
-<div class="glass">
-<h2>Mensagem do Director</h2>
-<p>Estamos comprometidos com a transformação digital.</p>
-</div>
-
-<div class="grid md:grid-cols-3 gap-4 mt-4">
-<div class="glass"><b>Missão</b><p>Eficiência</p></div>
-<div class="glass"><b>Visão</b><p>Liderança</p></div>
-<div class="glass"><b>Valores</b><p>Transparência</p></div>
-</div>
-
-<div class="mt-6 grid md:grid-cols-3 gap-4">
-<div class="glass"><b>Kapenda</b><p>Director</p></div>
-<div class="glass"><b>Alberto Marcos</b><p>Operações</p></div>
-<div class="glass"><b>Jenny Baptista</b><p>Atendimento</p></div>
-</div>
+<h2 class="text-xl font-semibold text-orange-400">Notificações</h2>
+${DB.notifications.map(n=>`<div class="glass fade">${n.msg}</div>`).join("")}
 </div>`;
 }
 
 // CHATBOT
 function sendMsg(){
-let v=chatInput.value;
-if(!v) return;
+let v=chatInput.value;if(!v) return;
 chatBox.innerHTML+=`<div>> ${v}</div>`;
-
 let r="Consulte o dashboard.";
 if(v.includes("cliente")) r="Abra Clientes.";
-if(v.includes("reclama")) r="Abra Reclamações.";
-
-setTimeout(()=>{
-chatBox.innerHTML+=`<div class="text-green-400">${r}</div>`;
-chatBox.scrollTop=chatBox.scrollHeight;
-},400);
-
+if(v.includes("reclama")) r="Abra Reportar Problema.";
+if(v.includes("staff")) r="Abra Equipa / Staff.";
+setTimeout(()=>{chatBox.innerHTML+=`<div class="text-green-400">${r}</div>`;chatBox.scrollTop=chatBox.scrollHeight;},400);
 chatInput.value="";
 }
 
 // INIT
-renderDashboard();
-
+nav('home',document.querySelector(".nav-btn"));
 </script>
-
 </body>
-  </html>‎
+  </html>
