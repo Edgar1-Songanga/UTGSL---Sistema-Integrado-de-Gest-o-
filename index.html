@@ -11,8 +11,13 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&display=swap');
 
-        body {
+        * {
             margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
             font-family: 'Inter', sans-serif;
             background: #010210;
             color: white;
@@ -53,6 +58,21 @@
             border-right: 1px solid rgba(255, 255, 255, 0.1);
             padding: 20px;
             box-shadow: 2px 0 15px rgba(0, 0, 0, 0.3);
+            position: fixed;
+            left: 0;
+            top: 0;
+            display: flex;
+            flex-direction: column;
+            z-index: 50;
+            overflow-y: auto;
+        }
+
+        .main-container {
+            margin-left: 280px;
+            width: calc(100% - 280px);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
         }
 
         .nav-btn {
@@ -66,6 +86,9 @@
             display: flex;
             align-items: center;
             gap: 10px;
+            border: none;
+            background: none;
+            width: 100%;
         }
 
         .nav-btn:hover {
@@ -102,43 +125,133 @@
             box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
         }
 
-        #chat {
+        /* Chat Floating Button */
+        #chatButton {
             position: fixed;
             bottom: 20px;
             right: 20px;
-            width: 320px;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(90deg, #10b981, #3b82f6);
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        #chatButton:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.6);
+        }
+
+        /* Chat Window */
+        #chatWindow {
+            position: fixed;
+            bottom: 90px;
+            right: 20px;
+            width: 350px;
+            max-height: 500px;
+            background: rgba(0, 0, 0, 0.8);
             backdrop-filter: blur(20px);
             border-radius: 20px;
-            padding: 15px;
-            z-index: 100;
-            background: rgba(0, 0, 0, 0.6);
             border: 1px solid rgba(255, 255, 255, 0.1);
             box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+            display: none;
+            flex-direction: column;
+            z-index: 101;
+            overflow: hidden;
+        }
+
+        #chatWindow.active {
+            display: flex;
+        }
+
+        .chat-header {
+            padding: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chat-header h3 {
+            margin: 0;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: white;
+        }
+
+        .chat-close {
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.7);
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: color 0.3s ease;
+        }
+
+        .chat-close:hover {
+            color: white;
         }
 
         #chatBox {
-            height: 180px;
+            flex: 1;
             overflow-y: auto;
-            margin-bottom: 10px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
             font-size: 0.9rem;
-            background: rgba(0, 0, 0, 0.3);
-            padding: 10px;
-            border-radius: 10px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
             color: rgba(255, 255, 255, 0.8);
         }
 
+        .chat-input-container {
+            padding: 15px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            gap: 8px;
+        }
+
         #chatInput {
+            flex: 1;
             background: rgba(255, 255, 255, 0.1);
             border: 1px solid rgba(255, 255, 255, 0.2);
             color: white;
-            padding: 10px 15px;
-            border-radius: 10px;
+            padding: 10px 12px;
+            border-radius: 8px;
             outline: none;
+            font-size: 0.9rem;
         }
 
         #chatInput::placeholder {
             color: rgba(255, 255, 255, 0.5);
+        }
+
+        #chatInput:focus {
+            border-color: #10b981;
+            box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+        }
+
+        .chat-send-btn {
+            background: linear-gradient(90deg, #10b981, #3b82f6);
+            border: none;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .chat-send-btn:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
         }
 
         h1.gradient-title {
@@ -168,6 +281,7 @@
             outline: none;
             width: 100%;
             transition: all 0.3s ease;
+            font-family: 'Inter', sans-serif;
         }
 
         .form-input:focus,
@@ -190,6 +304,9 @@
             color: white;
             transition: all 0.3s ease;
             box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+            border: none;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
         }
 
         .btn-primary:hover {
@@ -198,78 +315,143 @@
             box-shadow: 0 6px 20px rgba(16, 185, 129, 0.6);
         }
 
+        /* Mobile adjustments */
         @media (max-width: 768px) {
             .sidebar {
-                width: 100%;
-                position: fixed;
-                bottom: 0;
-                left: 0;
-                display: flex;
-                justify-content: space-around;
-                padding: 10px 0;
-                z-index: 10;
-                min-height: auto;
-                border-right: none;
-                border-top: 1px solid rgba(255, 255, 255, 0.1);
-                background: rgba(0, 0, 0, 0.7);
+                width: 240px;
+                padding: 15px;
+            }
+
+            .main-container {
+                margin-left: 240px;
+                width: calc(100% - 240px);
             }
 
             .nav-btn {
-                padding: 8px;
-                font-size: 0.75rem;
-                flex-direction: column;
-                text-align: center;
-                gap: 5px;
-            }
-
-            .nav-btn.active {
-                border-left: none;
-                border-bottom: 3px solid #10b981;
-                padding-left: 8px;
+                padding: 12px 15px;
+                font-size: 0.95rem;
             }
 
             h1.gradient-title {
                 font-size: 2.2rem;
             }
 
-            #chat {
+            #chatWindow {
                 width: calc(100% - 40px);
-                left: 20px;
+                bottom: 20px;
                 right: 20px;
-                bottom: 80px;
+                max-height: 350px;
             }
+
+            #chatButton {
+                bottom: 20px;
+                right: 20px;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .sidebar {
+                width: 200px;
+                padding: 12px;
+            }
+
+            .main-container {
+                margin-left: 200px;
+                width: calc(100% - 200px);
+            }
+
+            .nav-btn {
+                padding: 10px 12px;
+                font-size: 0.85rem;
+                gap: 8px;
+            }
+
+            .nav-btn i {
+                font-size: 1rem;
+            }
+
+            h1.gradient-title {
+                font-size: 1.8rem;
+            }
+
+            .card-grid {
+                grid-template-columns: 1fr;
+            }
+
+            #chatWindow {
+                width: calc(100% - 30px);
+                max-height: 300px;
+            }
+        }
+
+        /* Scrollbar styling */
+        .sidebar::-webkit-scrollbar,
+        #chatBox::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .sidebar::-webkit-scrollbar-track,
+        #chatBox::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .sidebar::-webkit-scrollbar-thumb,
+        #chatBox::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb:hover,
+        #chatBox::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.3);
         }
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
-<body class="flex flex-col md:flex-row">
+<body>
 
     <div id="bg"></div>
 
     <!-- SIDEBAR -->
-    <div class="sidebar flex flex-col gap-2 relative z-10">
-        <h2 class="text-3xl font-extrabold mb-6 text-white text-center">UTGSL <span class="text-green-500">.</span></h2>
-        <div class="nav-btn active" onclick="nav('home',this)"><i class="fas fa-home"></i> Home</div>
-        <div class="nav-btn" onclick="nav('report',this)"><i class="fas fa-exclamation-triangle"></i> Reportar Problema</div>
-        <div class="nav-btn" onclick="nav('clients',this)"><i class="fas fa-users"></i> Clientes</div>
-        <div class="nav-btn" onclick="nav('staff',this)"><i class="fas fa-user-tie"></i> Equipa / Staff</div>
-        <div class="nav-btn" onclick="nav('dashboard',this)"><i class="fas fa-chart-line"></i> Dashboard Agente</div>
-        <div class="nav-btn" onclick="nav('map',this)"><i class="fas fa-map-marked-alt"></i> Mapa</div>
-        <div class="nav-btn" onclick="nav('feedback',this)"><i class="fas fa-comment-alt"></i> Feedback</div>
-        <div class="nav-btn" onclick="nav('notifications',this)"><i class="fas fa-bell"></i> Notificações</div>
-        <div class="mt-auto text-xs text-gray-500 text-center pt-4">Powered by <span class="font-semibold text-gray-400">Magestade Pura Digital</span></div>
+    <div class="sidebar">
+        <h2 class="text-2xl font-extrabold mb-8 text-white text-center">UTGSL <span class="text-green-500">.</span></h2>
+        <button class="nav-btn active" onclick="nav('home',this)"><i class="fas fa-home"></i> <span>Home</span></button>
+        <button class="nav-btn" onclick="nav('report',this)"><i class="fas fa-exclamation-triangle"></i> <span>Reportar</span></button>
+        <button class="nav-btn" onclick="nav('clients',this)"><i class="fas fa-users"></i> <span>Clientes</span></button>
+        <button class="nav-btn" onclick="nav('staff',this)"><i class="fas fa-user-tie"></i> <span>Equipa</span></button>
+        <button class="nav-btn" onclick="nav('dashboard',this)"><i class="fas fa-chart-line"></i> <span>Dashboard</span></button>
+        <button class="nav-btn" onclick="nav('map',this)"><i class="fas fa-map-marked-alt"></i> <span>Mapa</span></button>
+        <button class="nav-btn" onclick="nav('feedback',this)"><i class="fas fa-comment-alt"></i> <span>Feedback</span></button>
+        <button class="nav-btn" onclick="nav('notifications',this)"><i class="fas fa-bell"></i> <span>Notificações</span></button>
+        <div class="mt-auto text-xs text-gray-500 text-center pt-4 border-t border-gray-700">Powered by <span class="font-semibold text-gray-400">Magestade Pura Digital</span></div>
     </div>
 
-    <!-- MAIN CONTENT -->
-    <div class="flex-1 p-6 md:p-10 overflow-y-auto relative z-10">
-        <div id="content"></div>
+    <!-- MAIN CONTAINER -->
+    <div class="main-container">
+        <!-- MAIN CONTENT -->
+        <div class="flex-1 p-6 md:p-10 overflow-y-auto relative z-10">
+            <div id="content"></div>
+        </div>
     </div>
 
-    <!-- CHATBOT -->
-    <div id="chat">
-        <div class="text-lg font-semibold mb-2 text-white">Assistente Virtual</div>
+    <!-- CHAT FLOATING BUTTON -->
+    <button id="chatButton" onclick="toggleChat()" title="Assistente Virtual">
+        <i class="fas fa-comments"></i>
+    </button>
+
+    <!-- CHAT WINDOW -->
+    <div id="chatWindow">
+        <div class="chat-header">
+            <h3>Assistente Virtual</h3>
+            <button class="chat-close" onclick="toggleChat()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
         <div id="chatBox"></div>
-        <input id="chatInput" placeholder="Escreva a sua mensagem..." class="form-input w-full" onkeydown="if(event.key==='Enter') sendMsg()">
+        <div class="chat-input-container">
+            <input id="chatInput" placeholder="Escreva a sua mensagem..." onkeydown="if(event.key==='Enter') sendMsg()">
+            <button class="chat-send-btn" onclick="sendMsg()"><i class="fas fa-paper-plane"></i></button>
+        </div>
     </div>
 
     <script>
@@ -285,12 +467,18 @@
             i = (i + 1) % imgs.length;
         }
         setInterval(bg, 7000); 
-        bg(); // Initial call
+        bg();
 
         // DATABASE DUMMY
-        let DB = JSON.parse(localStorage.getItem("utgsl") || `{"clients":[{"name":"Mateus João","type":"Individual","address":"Rua da Missão, Maianga","phone":"921111111","status":"Ativo","financial":"Regular"},{"name":"Ana Silva","type":"Empresarial","address":"Av. Deolinda Rodrigues, Viana","phone":"933222111","status":"Inativo","financial":"Atrasado"}],"staff":[{"name":"Kapenda","role":"Diretor Geral","msg":"Na UTGSL, estamos a redefinir o futuro do saneamento em Luanda. A nossa visão é impulsionar a inovação e a sustentabilidade, garantindo um ambiente mais saudável e próspero para todos os cidadãos. Juntos, construímos um legado de excelência e compromisso com a comunidade.","img":"https://randomuser.me/api/portraits/men/32.jpg"},{"name":"Alberto Marcos","role":"Coordenador de Operações","msg":"A eficiência operacional é a nossa prioridade. Trabalhamos incansavelmente para otimizar processos e garantir que cada intervenção seja rápida e eficaz.","img":"https://randomuser.me/api/portraits/men/44.jpg"},{"name":"Jenny Baptista","role":"Gestora de Atendimento ao Cliente","msg":"A voz do nosso cliente é o nosso guia. Dedicamo-nos a oferecer um atendimento de excelência, transformando cada interação numa oportunidade para superar expectativas.","img":"https://randomuser.me/api/portraits/women/67.jpg"},{"name":"Carlos Mendes","role":"Engenheiro Ambiental","msg":"Com paixão pela sustentabilidade, implementamos soluções inovadoras que protegem o nosso ecossistema e promovem a saúde pública.","img":"https://randomuser.me/api/portraits/men/78.jpg"}],"complaints":[{"name":"João Pedro","type":"Fuga de água","msg":"Fuga intensa na rua principal, causando alagamento.","location":"Benfica","status":"Em Análise"}],"feedback":[{"name":"Cidadão 1","msg":"Adoro a rapidez do atendimento!"},{"name":"Cidadão 2","msg":"Sistema muito intuitivo!"},{"name":"Maria Lúcia","msg":"Excelente iniciativa! Facilita muito o reporte de problemas."}] ,"notifications":[{"msg":"Sistema atualizado hoje com novas funcionalidades de mapeamento."},{"msg":"Equipa de intervenção rápida mobilizada para a área de Viana."}]}`);
+        let DB = JSON.parse(localStorage.getItem("utgsl") || `{"clients":[{"name":"Mateus João","type":"Individual","address":"Rua da Missão, Maianga","phone":"921111111","status":"Ativo","financial":"Regular"},{"name":"Ana Silva","type":"Empresarial","address":"Av. Deolinda Rodrigues, Viana","phone":"933222111","status":"Inativo","financial":"Atrasado"}],"staff":[{"name":"Kapenda","role":"Diretor Geral","msg":"Na UTGSL, estamos a redefinir o futuro do saneamento em Luanda. A nossa visão é impulsionar a inovação e a sustentabilidade, garantindo um ambiente mais saudável e próspero para todos os cidadãos. Juntos, construímos um legado de excelência e compromisso com a comunidade.","img":"https://randomuser.me/api/portraits/men/32.jpg"},{"name":"Alberto Marcos","role":"Coordenador de Operações","msg":"A eficiência operacional é a nossa prioridade. Trabalhamos incansavelmente para otimizar processos e garantir que cada intervenção seja rápida e eficaz.","img":"https://randomuser.me/api/portraits/men/44.jpg"},{"name":"Jenny Baptista","role":"Gestora de Atendimento ao Cliente","msg":"A voz do nosso cliente é o nosso guia. Dedicamo-nos a oferecer um atendimento de excelência, transformando cada interação numa oportunidade para superar expectativas.","img":"https://randomuser.me/api/portraits/women/67.jpg"},{"name":"Carlos Mendes","role":"Engenheiro Ambiental","msg":"Com paixão pela sustentabilidade, implementamos soluções inovadoras que protegem o nosso ecossistema e promovem a saúde pública.","img":"https://randomuser.me/api/portraits/men/78.jpg"}],"complaints":[{"name":"João Pedro","type":"Fuga de água","msg":"Fuga intensa na rua principal, causando alagamento.","location":"Benfica","status":"Em Análise"}],"feedback":[{"name":"Cidadão 1","msg":"Adoro a rapidez do atendimento!"},{"name":"Cidadão 2","msg":"Sistema muito intuitivo!"},{"name":"Maria Lúcia","msg":"Excelente iniciativa! Facilita muito o reporte de problemas."}],"notifications":[{"msg":"Sistema atualizado hoje com novas funcionalidades de mapeamento."},{"msg":"Equipa de intervenção rápida mobilizada para a área de Viana."}]}`);
         function save() {
             localStorage.setItem("utgsl", JSON.stringify(DB));
+        }
+
+        // CHAT FUNCTIONS
+        function toggleChat() {
+            const chatWindow = document.getElementById('chatWindow');
+            chatWindow.classList.toggle('active');
         }
 
         // NAVIGATION
@@ -298,9 +486,9 @@
             document.querySelectorAll(".nav-btn").forEach(b => b.classList.remove("active"));
             el.classList.add("active");
             const contentDiv = document.getElementById("content");
-            contentDiv.classList.remove('fade-in'); // Reset animation
-            void contentDiv.offsetWidth; // Trigger reflow
-            contentDiv.classList.add('fade-in'); // Add animation
+            contentDiv.classList.remove('fade-in');
+            void contentDiv.offsetWidth;
+            contentDiv.classList.add('fade-in');
 
             switch (page) {
                 case "home": renderHome(); break;
@@ -355,7 +543,7 @@
                 <div class="fade-in">
                     <h2 class="text-4xl font-extrabold text-yellow-400 mb-6">Reportar Problema de Saneamento</h2>
                     <p class="text-gray-400 mb-6">Por favor, preencha os detalhes abaixo para nos ajudar a resolver o problema rapidamente.</p>
-                    <div class="glass p-6 space-y-4">
+                    <div class="glass p-6 space-y-4 max-w-2xl">
                         <select id="rType" class="form-select">
                             <option value="">Selecione o Tipo de Problema</option>
                             <option>Fuga de água</option>
@@ -470,7 +658,7 @@
                     </div>
                     <div class="glass p-6">
                         <h3 class="text-2xl font-bold mb-4 text-green-300">Ocorrências por Dia (Última Semana)</h3>
-                        <canvas id="chart"></canvas>
+                        <canvas id="chart" style="max-height: 300px;"></canvas>
                     </div>
                 </div>`;
             new Chart(document.getElementById("chart"), {
@@ -488,7 +676,7 @@
                 },
                 options: {
                     responsive: true,
-                    maintainAspectRatio: false,
+                    maintainAspectRatio: true,
                     plugins: {
                         legend: { display: false }
                     },
@@ -561,11 +749,12 @@
 
         // CHATBOT
         function sendMsg() {
-            let v = chatInput.value.toLowerCase();
+            let v = document.getElementById('chatInput').value.toLowerCase();
             if (!v) return;
 
-            chatBox.innerHTML += `<div class="text-right text-blue-300 mb-1">Você: ${v}</div>`;
-            chatInput.value = "";
+            const chatBox = document.getElementById('chatBox');
+            chatBox.innerHTML += `<div style="text-align: right; color: #3b82f6; margin-bottom: 8px;">Você: ${v}</div>`;
+            document.getElementById('chatInput').value = "";
             chatBox.scrollTop = chatBox.scrollHeight;
 
             let r = "Desculpe, não entendi. Posso ajudar com informações sobre o dashboard, clientes, reclamações ou staff.";
@@ -573,13 +762,13 @@
             if (v.includes("olá") || v.includes("oi")) {
                 r = "Olá! Como posso ajudar hoje?";
             } else if (v.includes("dashboard") || v.includes("métricas")) {
-                r = "Para visualizar as métricas e o dashboard, por favor, clique na opção 'Dashboard Agente' no menu lateral.";
+                r = "Para visualizar as métricas e o dashboard, por favor, clique na opção 'Dashboard' no menu lateral.";
             } else if (v.includes("cliente") || v.includes("utentes")) {
                 r = "A lista de clientes e utentes pode ser encontrada na secção 'Clientes'.";
             } else if (v.includes("reclama") || v.includes("problema") || v.includes("ocorrência")) {
-                r = "Para reportar um problema ou ver as reclamações existentes, aceda à secção 'Reportar Problema'.";
+                r = "Para reportar um problema ou ver as reclamações existentes, aceda à secção 'Reportar'.";
             } else if (v.includes("staff") || v.includes("equipa")) {
-                r = "Conheça a nossa equipa na secção 'Equipa / Staff'.";
+                r = "Conheça a nossa equipa na secção 'Equipa'.";
             } else if (v.includes("mapa") || v.includes("localização")) {
                 r = "O mapa de ocorrências está disponível na secção 'Mapa'.";
             } else if (v.includes("feedback") || v.includes("opinião")) {
@@ -589,7 +778,7 @@
             }
 
             setTimeout(() => {
-                chatBox.innerHTML += `<div class="text-green-400 mb-1">Assistente: ${r}</div>`;
+                chatBox.innerHTML += `<div style="color: #10b981; margin-bottom: 8px;">Assistente: ${r}</div>`;
                 chatBox.scrollTop = chatBox.scrollHeight;
             }, 800);
         }
